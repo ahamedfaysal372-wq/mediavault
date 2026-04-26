@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // Serve static frontend from /api/public folder
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(process.cwd(), 'api', 'public')));
 
 // API Routes
 app.use('/api/media', mediaRoutes);
@@ -36,7 +36,7 @@ app.get('/api/health', (req, res) => {
 
 // Fallback: serve index.html for any non-API route
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(process.cwd(), 'api', 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
