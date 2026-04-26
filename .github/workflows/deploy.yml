@@ -1,4 +1,4 @@
-name: MediaVault – Build & Deploy to Azure
+name: MediaVault Deploy
 
 on:
   push:
@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Node.js 22
         uses: actions/setup-node@v4
@@ -21,9 +20,9 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./api
-        run: npm ci
+        run: npm install
 
-      - name: Deploy to Azure App Service
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
