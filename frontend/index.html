@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MediaVault</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --text: #e8eaf6;
+      --muted: #8892b0;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warn: #f59e0b;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent2);
+    }
+    .nav-brand span { font-size: 1.4rem; }
+    .nav-tabs { display: flex; gap: 0.25rem; }
+    .tab-btn {
+      padding: 0.4rem 1rem;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+    .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .user-select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
+    /* ─── LAYOUT ─── */
+    main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: var(--accent2);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* ─── FORM ─── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-full { grid-column: 1 / -1; }
+    label { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; color: var(--muted); }
+    input[type=text], input[type=email], textarea, select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 0.6rem 0.8rem;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 70px; }
+
+    .file-drop {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+    }
+    .file-drop:hover, .file-drop.dragover {
+      border-color: var(--accent);
+      background: rgba(108,99,255,0.05);
+    }
+    .file-drop input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .file-drop-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .file-drop p { color: var(--muted); font-size: 0.9rem; }
+    .file-name { margin-top: 0.5rem; color: var(--accent2); font-size: 0.85rem; font-weight: 600; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      padding: 0.55rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: opacity 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { opacity: 0.9; }
+    .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent2); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ─── MEDIA GRID ─── */
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+    .media-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .media-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .media-thumb {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+      background: var(--surface2);
+    }
+    .media-thumb-placeholder {
+      width: 100%;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface2);
+      font-size: 3rem;
+    }
+    .media-info { padding: 1rem; }
+    .media-title {
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .media-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.6rem; }
+    .media-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.8rem; }
+    .tag {
+      background: rgba(108,99,255,0.2);
+      color: var(--accent2);
+      border-radius: 4px;
+      padding: 0.15rem 0.5rem;
+      font-size: 0.75rem;
+    }
+    .media-actions { display: flex; gap: 0.5rem; }
+
+    /* ─── SEARCH BAR ─── */
+    .search-bar {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+    .search-bar input { flex: 1; }
+
+    /* ─── TABLE ─── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th { text-align: left; padding: 0.75rem 1rem; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .action-badge {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .badge-UPLOAD { background: rgba(34,197,94,0.2); color: var(--success); }
+    .badge-DELETE { background: rgba(239,68,68,0.2); color: var(--danger); }
+    .badge-UPDATE { background: rgba(245,158,11,0.2); color: var(--warn); }
+
+    /* ─── TOAST ─── */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 0.8rem 1.4rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; }
+    #toast.success { background: var(--success); color: #fff; }
+    #toast.error { background: var(--danger); color: #fff; }
+
+    /* ─── MODAL ─── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 480px;
+    }
+    .modal h3 { margin-bottom: 1rem; color: var(--accent2); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+
+    /* ─── SPINNER ─── */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── EMPTY STATE ─── */
+    .empty {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty p { font-size: 0.95rem; }
+
+    /* ─── STATUS PILL ─── */
+    .status-ok { color: var(--success); font-weight: 700; }
+    .status-err { color: var(--danger); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>✏️ Edit Media</h3>
+    <input type="hidden" id="editId"/>
+    <input type="hidden" id="editMediaType"/>
+    <div style="display:grid;gap:1rem;">
+      <div>
+        <label>Title</label>
+        <input type="text" id="editTitle"/>
+      </div>
+      <div>
+        <label>Description</label>
+        <textarea id="editDesc"></textarea>
+      </div>
+      <div>
+        <label>Tags (comma-separated)</label>
+        <input type="text" id="editTags"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEdit()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand"><span>🎬</span> MediaVault</div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="showPage('dashboard')">📁 Dashboard</button>
+    <button class="tab-btn" onclick="showPage('upload')">⬆️ Upload</button>
+    <button class="tab-btn" onclick="showPage('users')">👥 Users</button>
+    <button class="tab-btn" onclick="showPage('logs')">📋 Audit Logs</button>
+  </div>
+  <div class="user-badge">
+    Active user:
+    <select class="user-select" id="activeUser" onchange="refreshLogs()">
+      <option value="">— none —</option>
+    </select>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ═══ DASHBOARD PAGE ═══ -->
+  <div class="page active" id="page-dashboard">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="🔍 Search by title or tag…" oninput="filterMedia()"/>
+      <button class="btn btn-ghost" onclick="loadMedia()">↻ Refresh</button>
+    </div>
+    <div id="mediaGrid" class="media-grid"></div>
+  </div>
+
+  <!-- ═══ UPLOAD PAGE ═══ -->
+  <div class="page" id="page-upload">
+    <div class="card">
+      <h2>⬆️ Upload New Media</h2>
+      <div style="display:grid;gap:1rem;">
+        <div class="file-drop" id="fileDrop">
+          <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx" onchange="onFileSelected()"/>
+          <div class="file-drop-icon">📂</div>
+          <p>Click or drag & drop a file here</p>
+          <p style="font-size:0.8rem;margin-top:0.3rem;">Images, Videos, PDFs, Documents</p>
+          <div class="file-name" id="selectedFileName"></div>
+        </div>
+        <div class="form-grid">
+          <div>
+            <label>Title</label>
+            <input type="text" id="uploadTitle" placeholder="Enter a title…"/>
+          </div>
+          <div>
+            <label>Tags (comma-separated)</label>
+            <input type="text" id="uploadTags" placeholder="e.g. nature, beach, travel"/>
+          </div>
+          <div class="form-full">
+            <label>Description</label>
+            <textarea id="uploadDesc" placeholder="Optional description…"></textarea>
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-primary" id="uploadBtn" onclick="uploadMedia()">⬆️ Upload to Azure</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ USERS PAGE ═══ -->
+  <div class="page" id="page-users">
+    <div class="card">
+      <h2>➕ Add User</h2>
+      <div class="form-grid">
+        <div>
+          <label>Username</label>
+          <input type="text" id="newUsername" placeholder="e.g. faysal_a"/>
+        </div>
+        <div>
+          <label>Email</label>
+          <input type="email" id="newEmail" placeholder="e.g. faysal@email.com"/>
+        </div>
+      </div>
+      <div style="margin-top:1rem;">
+        <button class="btn btn-primary" onclick="createUser()">👤 Create User</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>👥 All Users</h2>
+      <div id="usersTable"></div>
+    </div>
+  </div>
+
+  <!-- ═══ LOGS PAGE ═══ -->
+  <div class="page" id="page-logs">
+    <div class="card">
+      <h2>📋 Audit Logs</h2>
+      <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:1rem;">
+        <label style="margin:0;">Filter by user:</label>
+        <select class="user-select" id="logsUserFilter" style="width:200px;" onchange="refreshLogs()">
+          <option value="">All users</option>
+        </select>
+        <button class="btn btn-ghost" onclick="refreshLogs()">↻ Refresh</button>
+      </div>
+      <div id="logsTable"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // ─────────────────────────────────────────────
+  // CONFIG – change this if your API is hosted elsewhere
+  // ─────────────────────────────────────────────
+  const API = window.location.origin + '/api';
+
+  let allMedia = [];
+
+  // ─────────────────────────────────────────────
+  // NAVIGATION
+  // ─────────────────────────────────────────────
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      if (b.textContent.toLowerCase().includes(name)) b.classList.add('active');
+    });
+    if (name === 'dashboard') loadMedia();
+    if (name === 'users') loadUsers();
+    if (name === 'logs') refreshLogs();
+  }
+
+  // ─────────────────────────────────────────────
+  // TOAST
+  // ─────────────────────────────────────────────
+  function toast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    setTimeout(() => t.className = '', 3000);
+  }
+
+  // ─────────────────────────────────────────────
+  // FILE DROP
+  // ─────────────────────────────────────────────
+  const fileDrop = document.getElementById('fileDrop');
+  fileDrop.addEventListener('dragover', e => { e.preventDefault(); fileDrop.classList.add('dragover'); });
+  fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('dragover'));
+  fileDrop.addEventListener('drop', e => {
+    e.preventDefault();
+    fileDrop.classList.remove('dragover');
+    document.getElementById('fileInput').files = e.dataTransfer.files;
+    onFileSelected();
+  });
+
+  function onFileSelected() {
+    const f = document.getElementById('fileInput').files[0];
+    if (f) document.getElementById('selectedFileName').textContent = `📎 ${f.name}`;
+  }
+
+  // ─────────────────────────────────────────────
+  // MEDIA – LOAD & DISPLAY
+  // ─────────────────────────────────────────────
+  async function loadMedia() {
+    const grid = document.getElementById('mediaGrid');
+    grid.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted)"><div class="spinner"></div><p style="margin-top:1rem">Loading media…</p></div>';
+    try {
+      const res = await fetch(`${API}/media`);
+      allMedia = await res.json();
+      renderMedia(allMedia);
+    } catch (e) {
+      grid.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>Could not connect to API.<br/><small>${e.message}</small></p></div>`;
+    }
+  }
+
+  function renderMedia(items) {
+    const grid = document.getElementById('mediaGrid');
+    if (!items.length) {
+      grid.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>No media uploaded yet.<br/>Go to Upload to add your first file.</p></div>';
+      return;
+    }
+    grid.innerHTML = items.map(m => {
+      const isImage = m.mediaType === 'image';
+      const thumb = isImage
+        ? `<img class="media-thumb" src="${m.blobUrl}" alt="${m.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+           <div class="media-thumb-placeholder" style="display:none">${mediaIcon(m.mediaType)}</div>`
+        : `<div class="media-thumb-placeholder">${mediaIcon(m.mediaType)}</div>`;
+      const tags = (m.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
+      const date = new Date(m.uploadedAt).toLocaleDateString();
+      const size = m.fileSize ? (m.fileSize / 1024).toFixed(1) + ' KB' : '';
+      return `
+        <div class="media-card" id="mc-${m.id}">
+          ${thumb}
+          <div class="media-info">
+            <div class="media-title" title="${m.title}">${m.title}</div>
+            <div class="media-meta">${date} • ${m.mimeType} ${size ? '• ' + size : ''}</div>
+            <div class="media-tags">${tags}</div>
+            <div class="media-actions">
+              <a class="btn btn-ghost" href="${m.blobUrl}" target="_blank" style="font-size:0.8rem;padding:0.4rem 0.8rem;">👁 View</a>
+              <button class="btn btn-ghost" style="font-size:0.8rem;padding:0.4rem 0.8rem;" onclick="openEdit('${m.id}','${escapeQuotes(m.title)}','${escapeQuotes(m.description)}','${(m.tags||[]).join(',')}','${m.mediaType}')">✏️ Edit</button>
+              <button class="btn btn-danger" style="font-size:0.8rem;padding:0.4rem 0.8rem;" onclick="deleteMedia('${m.id}','${m.mediaType}')">🗑</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function mediaIcon(type) {
+    const icons = { image: '🖼️', video: '🎬', application: '📄', audio: '🎵' };
+    return icons[type] || '📁';
+  }
+
+  function escapeQuotes(s) { return (s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+  function filterMedia() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allMedia.filter(m =>
+      m.title.toLowerCase().includes(q) ||
+      (m.tags || []).some(t => t.toLowerCase().includes(q))
+    );
+    renderMedia(filtered);
+  }
+
+  // ─────────────────────────────────────────────
+  // MEDIA – UPLOAD
+  // ─────────────────────────────────────────────
+  async function uploadMedia() {
+    const file = document.getElementById('fileInput').files[0];
+    if (!file) { toast('Please select a file first', 'error'); return; }
+
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Uploading…';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', document.getElementById('uploadTitle').value || file.name);
+    formData.append('description', document.getElementById('uploadDesc').value);
+    formData.append('tags', document.getElementById('uploadTags').value);
+    const uid = document.getElementById('activeUser').value;
+    if (uid) formData.append('userId', uid);
+
+    try {
+      const res = await fetch(`${API}/media`, { method: 'POST', body: formData });
+      if (!res.ok) throw new Error((await res.json()).error);
+      toast('✅ Media uploaded successfully!');
+      document.getElementById('fileInput').value = '';
+      document.getElementById('selectedFileName').textContent = '';
+      document.getElementById('uploadTitle').value = '';
+      document.getElementById('uploadDesc').value = '';
+      document.getElementById('uploadTags').value = '';
+    } catch (e) {
+      toast('Upload failed: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '⬆️ Upload to Azure';
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // MEDIA – EDIT
+  // ─────────────────────────────────────────────
+  function openEdit(id, title, desc, tags, mediaType) {
+    document.getElementById('editId').value = id;
+    document.getElementById('editMediaType').value = mediaType;
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editDesc').value = desc;
+    document.getElementById('editTags').value = tags;
+    document.getElementById('editModal').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('editModal').classList.remove('open');
+  }
+  async function submitEdit() {
+    const id = document.getElementById('editId').value;
+    const body = {
+      title: document.getElementById('editTitle').value,
+      description: document.getElementById('editDesc').value,
+      tags: document.getElementById('editTags').value,
+      userId: document.getElementById('activeUser').value || undefined,
+    };
+    try {
+      const res = await fetch(`${API}/media/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      toast('✅ Media updated!');
+      closeModal();
+      loadMedia();
+    } catch (e) {
+      toast('Update failed: ' + e.message, 'error');
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // MEDIA – DELETE
+  // ─────────────────────────────────────────────
+  async function deleteMedia(id) {
+    if (!confirm('Delete this media item? This cannot be undone.')) return;
+    const uid = document.getElementById('activeUser').value;
+    try {
+      const res = await fetch(`${API}/media/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: uid || undefined }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      toast('🗑️ Media deleted');
+      loadMedia();
+    } catch (e) {
+      toast('Delete failed: ' + e.message, 'error');
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // USERS
+  // ─────────────────────────────────────────────
+  async function loadUsers() {
+    const container = document.getElementById('usersTable');
+    container.innerHTML = '<div class="spinner"></div>';
+    try {
+      const res = await fetch(`${API}/users`);
+      const users = await res.json();
+      if (!users.length) {
+        container.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>No users yet.</p></div>';
+      } else {
+        container.innerHTML = `
+          <table>
+            <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Created</th></tr></thead>
+            <tbody>${users.map(u => `
+              <tr>
+                <td>${u.userId}</td>
+                <td>${u.username}</td>
+                <td>${u.email}</td>
+                <td>${new Date(u.createdAt).toLocaleDateString()}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>`;
+        // Populate user selects
+        const options = users.map(u => `<option value="${u.userId}">${u.username}</option>`).join('');
+        document.getElementById('activeUser').innerHTML = '<option value="">— none —</option>' + options;
+        document.getElementById('logsUserFilter').innerHTML = '<option value="">All users</option>' + options;
+      }
+    } catch (e) {
+      container.innerHTML = `<p style="color:var(--danger)">Error: ${e.message}</p>`;
+    }
+  }
+
+  async function createUser() {
+    const username = document.getElementById('newUsername').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
+    if (!username || !email) { toast('Username and email are required', 'error'); return; }
+    try {
+      const res = await fetch(`${API}/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      toast('✅ User created!');
+      document.getElementById('newUsername').value = '';
+      document.getElementById('newEmail').value = '';
+      loadUsers();
+    } catch (e) {
+      toast('Error: ' + e.message, 'error');
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // AUDIT LOGS
+  // ─────────────────────────────────────────────
+  async function refreshLogs() {
+    const container = document.getElementById('logsTable');
+    const userId = document.getElementById('logsUserFilter')?.value || '';
+    container.innerHTML = '<div class="spinner"></div>';
+    const url = userId ? `${API}/users/${userId}/logs` : `${API}/users/all/logs`;
+    try {
+      let logs = [];
+      if (userId) {
+        const res = await fetch(url);
+        logs = await res.json();
+      } else {
+        // Fetch all users and aggregate logs
+        const usersRes = await fetch(`${API}/users`);
+        const users = await usersRes.json();
+        for (const u of users) {
+          const r = await fetch(`${API}/users/${u.userId}/logs`);
+          const l = await r.json();
+          logs = logs.concat(l);
+        }
+        logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      }
+      if (!logs.length) {
+        container.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No audit logs yet.</p></div>';
+      } else {
+        container.innerHTML = `
+          <table>
+            <thead><tr><th>Log ID</th><th>User</th><th>Action</th><th>Media ID</th><th>Timestamp</th></tr></thead>
+            <tbody>${logs.map(l => `
+              <tr>
+                <td>${l.logId}</td>
+                <td>${l.username || '—'}</td>
+                <td><span class="action-badge badge-${l.action}">${l.action}</span></td>
+                <td style="font-size:0.78rem;color:var(--muted)">${l.mediaId || '—'}</td>
+                <td>${new Date(l.timestamp).toLocaleString()}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>`;
+      }
+    } catch (e) {
+      container.innerHTML = `<p style="color:var(--danger)">Error: ${e.message}</p>`;
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  // INIT
+  // ─────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    loadMedia();
+    // Pre-load users for the active-user selector
+    fetch(`${API}/users`).then(r => r.json()).then(users => {
+      if (users.length) {
+        const opts = users.map(u => `<option value="${u.userId}">${u.username}</option>`).join('');
+        document.getElementById('activeUser').innerHTML = '<option value="">— none —</option>' + opts;
+        document.getElementById('logsUserFilter').innerHTML = '<option value="">All users</option>' + opts;
+      }
+    }).catch(() => {});
+  });
+</script>
+</body>
+</html>

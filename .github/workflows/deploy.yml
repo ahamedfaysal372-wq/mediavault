@@ -1,0 +1,45 @@
+name: MediaVault – Build & Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:   # Allow manual trigger from GitHub UI
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    name: Build and Deploy
+
+    steps:
+      # 1. Check out the code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Node.js
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        working-directory: ./api
+        run: npm ci
+
+      # 4. (Optional) Run tests
+      - name: Run tests
+        working-directory: ./api
+        run: npm test
+        continue-on-error: true
+
+      # 5. Deploy to Azure App Service
+      #    Requires AZURE_WEBAPP_PUBLISH_PROFILE secret set in GitHub repo settings
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: .
