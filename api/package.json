@@ -4,7 +4,7 @@
   "description": "MediaVault Cloud-Native Multimedia Platform API",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node /home/site/wwwroot/api/server.js",
     "dev": "nodemon server.js",
     "test": "echo \"No tests configured\" && exit 0"
   },
