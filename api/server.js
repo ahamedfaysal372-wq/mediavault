@@ -18,21 +18,25 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Serve static frontend
-app.use(express.static(path.join(__dirname, '../frontend')));
+// Serve static frontend from /api/public folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 // API Routes
 app.use('/api/media', mediaRoutes);
 app.use('/api/users', userRoutes);
 
-// Health check
+// Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', service: 'MediaVault API', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    service: 'MediaVault API',
+    timestamp: new Date().toISOString(),
+  });
 });
 
-// Fallback to frontend
+// Fallback: serve index.html for any non-API route
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
@@ -40,7 +44,9 @@ const PORT = process.env.PORT || 3000;
 async function start() {
   try {
     await initSqlSchema();
-    app.listen(PORT, () => console.log(`✅ MediaVault API running on port ${PORT}`));
+    app.listen(PORT, () => {
+      console.log(`✅ MediaVault API running on port ${PORT}`);
+    });
   } catch (err) {
     console.error('Failed to start:', err.message);
     process.exit(1);
