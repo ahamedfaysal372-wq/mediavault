@@ -33,7 +33,24 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
-
+// Serve frontend inline
+app.get('/', (req, res) => {
+  const fs = require('fs');
+  const paths = [
+    '/home/site/wwwroot/api/public/index.html',
+    path.join(__dirname, 'public', 'index.html'),
+    path.join(process.cwd(), 'api', 'public', 'index.html'),
+  ];
+  
+  for (const p of paths) {
+    if (fs.existsSync(p)) {
+      console.log('Serving from:', p);
+      return res.sendFile(p);
+    }
+  }
+  
+  res.send('MediaVault API is running! Frontend not found. CWD: ' + process.cwd());
+});
 // Fallback: serve index.html for any non-API route
 app.get('*', (req, res) => {
   res.sendFile('/home/site/wwwroot/api/public/index.html');
