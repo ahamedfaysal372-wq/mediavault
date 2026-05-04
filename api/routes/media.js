@@ -62,6 +62,19 @@ router.post('/', upload.single('file'), async (req, res) => {
         .query(`INSERT INTO AuditLogs (userId, action, mediaId) VALUES (@userId, @action, @mediaId)`);
     }
 
+    // Trigger Logic App notification automatically
+    if (process.env.LOGIC_APP_URL) {
+      fetch(process.env.LOGIC_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'ahamedfaysal372@gmail.com',
+          message: `New media uploaded: ${mediaDoc.title} (${mediaDoc.mimeType})`,
+          triggeredBy: userId || 'unknown'
+        })
+      }).catch(err => console.error('Logic App trigger failed:', err.message));
+    }
+
     res.status(201).json(created);
   } catch (err) {
     console.error('[POST /media]', err.message);
