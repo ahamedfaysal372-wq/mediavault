@@ -1,763 +1,794 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MediaVault</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&display=swap" rel="stylesheet"/>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#f7f6f3;--white:#fff;--stone:#f0ede8;--border:#e2ddd8;--border2:#c8c2ba;
+      --text:#1a1916;--muted:#8c8580;--muted2:#b5b0aa;
+      --green:#1a6b4a;--red:#b91c1c;--blue:#1d4ed8;--amber:#92400e;
+      --r:6px;--sb:260px
+    }
+    html,body{height:100%}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-width:900px}
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--stone)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-    :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #6c63ff;
-      --accent2: #a78bfa;
-      --text: #e8eaf6;
-      --muted: #8892b0;
-      --danger: #ef4444;
-      --success: #22c55e;
-      --warn: #f59e0b;
-    }
+    /* LOGIN */
+    #loginPage{min-height:100vh;display:grid;grid-template-columns:1fr 1fr}
+    .lp-l{background:var(--text);color:var(--bg);display:flex;flex-direction:column;padding:3.5rem;position:relative;overflow:hidden;gap:3rem}
+    .lp-l::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+    .lp-brand{display:flex;align-items:center;gap:12px;font-family:'Fraunces',serif;font-size:18px;font-weight:600;letter-spacing:-.02em;position:relative}
+    .lp-hero{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center}
+    .lp-hero h1{font-family:'Fraunces',serif;font-size:3.2rem;font-weight:300;line-height:1.1;letter-spacing:-.03em;margin-bottom:1.5rem}
+    .lp-hero h1 em{font-style:italic;color:rgba(247,246,243,.55)}
+    .lp-hero p{font-size:14px;color:rgba(247,246,243,.7);max-width:360px;line-height:1.8;margin-bottom:2rem}
+    .lp-tags{display:flex;flex-wrap:wrap;gap:8px}
+    .lp-tag{border:1px solid rgba(255,255,255,.18);border-radius:3px;padding:5px 12px;font-size:12px;color:rgba(247,246,243,.65);letter-spacing:.04em;text-transform:uppercase}
+    .lp-r{background:var(--white);display:flex;align-items:center;justify-content:center;padding:3.5rem;border-left:1px solid var(--border)}
+    .lp-form{width:100%;max-width:380px}
+    .lp-title{font-family:'Fraunces',serif;font-size:28px;font-weight:400;letter-spacing:-.02em;margin-bottom:6px}
+    .lp-sub{font-size:14px;color:var(--muted);margin-bottom:2rem}
+    .tabs-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.75rem}
+    .tab{padding:10px 0;margin-right:24px;border:none;border-bottom:2px solid transparent;background:transparent;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:-1px}
+    .tab.on{border-bottom-color:var(--text);color:var(--text);font-weight:600}
+    .fld{margin-bottom:16px}
+    .fld label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase}
+    .fld input,.fld select{width:100%;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text);padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border-color .15s,background .15s}
+    .fld input:focus,.fld select:focus{border-color:var(--text);background:var(--white)}
+    .fld input::placeholder{color:var(--muted2)}
+    .btn-go{width:100%;padding:13px;background:var(--text);color:var(--bg);border:none;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s;margin-top:6px}
+    .btn-go:hover{opacity:.85}
+    .sw-link{text-align:center;margin-top:16px;font-size:13px;color:var(--muted)}
+    .sw-link a{color:var(--green);text-decoration:none;cursor:pointer;font-weight:600}
+    .err{background:#fef2f2;border:1px solid #fecaca;border-radius:var(--r);padding:11px 14px;font-size:13px;color:var(--red);margin-bottom:14px;display:none}
 
-    body {
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    /* APP SHELL */
+    #app{display:none}
+    .app-shell{display:flex;min-height:100vh}
 
-    /* ─── NAV ─── */
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 60px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--accent2);
-    }
-    .nav-brand span { font-size: 1.4rem; }
-    .nav-tabs { display: flex; gap: 0.25rem; }
-    .tab-btn {
-      padding: 0.4rem 1rem;
-      border: none;
-      border-radius: 6px;
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.2s;
-    }
-    .tab-btn.active, .tab-btn:hover {
-      background: var(--accent);
-      color: #fff;
-    }
-    .user-badge {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-    .user-select {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.3rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-    }
+    /* SIDEBAR */
+    .sb{width:var(--sb);flex-shrink:0;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;overflow-y:auto}
+    .sb-hd{padding:22px 20px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .sb-brand{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-size:16px;font-weight:600;letter-spacing:-.02em;margin-bottom:18px}
+    .sb-user{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:var(--r);border:1px solid var(--border)}
+    .sb-av{width:34px;height:34px;background:var(--text);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--bg);font-weight:700;flex-shrink:0}
+    .sb-info{flex:1;min-width:0}
+    .sb-nm{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+    .sb-role-txt{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:1px}
+    .sb-nav{flex:1;padding:14px 12px}
+    .sb-grp{margin-bottom:10px}
+    .sb-gl{font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;padding:10px 10px 6px;display:block}
+    .sb-lnk{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:var(--r);border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;width:100%;text-align:left;transition:all .1s;position:relative;white-space:nowrap}
+    .sb-lnk:hover{background:var(--bg);color:var(--text)}
+    .sb-lnk.on{background:var(--bg);color:var(--text);font-weight:600}
+    .sb-lnk.on::after{content:'';position:absolute;right:12px;width:6px;height:6px;background:var(--green);border-radius:50%;flex-shrink:0}
+    .sb-cnt{margin-left:auto;font-size:11px;color:var(--muted2);background:var(--stone);padding:2px 8px;border-radius:10px;font-weight:600;flex-shrink:0}
+    .sb-ft{padding:14px 16px;border-top:1px solid var(--border);flex-shrink:0}
+    .btn-out{width:100%;padding:11px;background:transparent;border:1px solid var(--border);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
+    .btn-out:hover{border-color:var(--red);color:var(--red)}
 
-    /* ─── LAYOUT ─── */
-    main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-    .page { display: none; }
-    .page.active { display: block; }
+    /* MAIN CONTENT */
+    .main-area{flex:1;margin-left:var(--sb);min-height:100vh;display:flex;flex-direction:column;min-width:0}
+    .topbar{height:56px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:30;flex-shrink:0}
+    .crumb{font-size:14px;color:var(--muted);white-space:nowrap}.crumb strong{color:var(--text);font-weight:600}
+    .tb-r{display:flex;align-items:center;gap:10px;flex-shrink:0}
+    .tb-btn{padding:8px 18px;border-radius:var(--r);border:1px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap}
+    .tb-btn:hover{background:var(--bg);color:var(--text)}
+    .tb-btn.pk{background:var(--text);color:var(--bg);border-color:var(--text);font-weight:600}
+    .tb-btn.pk:hover{opacity:.85}
+    .content{padding:36px;flex:1}
+    .page{display:none}.page.on{display:block;animation:ap .18s ease}
+    @keyframes ap{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
-    /* ─── CARDS ─── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-    .card h2 {
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
-      color: var(--accent2);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+    /* PAGE HEADERS */
+    .ph{margin-bottom:28px}
+    .ph h1{font-family:'Fraunces',serif;font-size:30px;font-weight:400;letter-spacing:-.02em;margin-bottom:6px}
+    .ph p{font-size:14px;color:var(--muted)}
+    .ph-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;gap:16px}
+    .ph-row-left h1{font-family:'Fraunces',serif;font-size:30px;font-weight:400;letter-spacing:-.02em;margin-bottom:6px}
+    .ph-row-left p{font-size:14px;color:var(--muted)}
 
-    /* ─── FORM ─── */
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .form-full { grid-column: 1 / -1; }
-    label { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; color: var(--muted); }
-    input[type=text], input[type=email], textarea, select {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 0.6rem 0.8rem;
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    input:focus, textarea:focus { border-color: var(--accent); }
-    textarea { resize: vertical; min-height: 70px; }
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:var(--r);border:1px solid var(--border);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;background:var(--white);color:var(--text);white-space:nowrap}
+    .btn:active{transform:scale(.98)}.btn:disabled{opacity:.4;cursor:not-allowed}.btn:hover{background:var(--bg)}
+    .btn-dk{background:var(--text);color:var(--bg);border-color:var(--text);font-weight:600}.btn-dk:hover{opacity:.85;background:var(--text);color:var(--bg)}
+    .btn-rd{background:#fef2f2;color:var(--red);border-color:#fecaca}.btn-rd:hover{background:#fee2e2}
+    .btn-sm{padding:7px 14px;font-size:13px}
+    .admin-badge{background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:3px;padding:3px 10px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 
-    .file-drop {
-      border: 2px dashed var(--border);
-      border-radius: 10px;
-      padding: 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      position: relative;
-    }
-    .file-drop:hover, .file-drop.dragover {
-      border-color: var(--accent);
-      background: rgba(108,99,255,0.05);
-    }
-    .file-drop input[type=file] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer;
-    }
-    .file-drop-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .file-drop p { color: var(--muted); font-size: 0.9rem; }
-    .file-name { margin-top: 0.5rem; color: var(--accent2); font-size: 0.85rem; font-weight: 600; }
+    /* STATS */
+    .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:28px}
+    .sc{background:var(--white);padding:24px 26px 20px;transition:background .15s}.sc:hover{background:var(--bg)}
+    .sc-l{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+    .sc-v{font-family:'Fraunces',serif;font-size:44px;font-weight:300;line-height:1;letter-spacing:-.04em;margin-bottom:5px}
+    .sc-s{font-size:12px;color:var(--muted2)}
 
-    /* ─── BUTTONS ─── */
-    .btn {
-      padding: 0.55rem 1.2rem;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: opacity 0.2s, transform 0.1s;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .btn:active { transform: scale(0.97); }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { opacity: 0.9; }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .btn-danger:hover { opacity: 0.9; }
-    .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-    .btn-ghost:hover { border-color: var(--accent); color: var(--accent2); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    /* CARDS */
+    .card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px;overflow:hidden}
+    .card-hd{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600}
+    .card-bd{padding:24px}
 
-    /* ─── MEDIA GRID ─── */
-    .media-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1.25rem;
-    }
-    .media-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      transition: border-color 0.2s, transform 0.2s;
-    }
-    .media-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .media-thumb {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      display: block;
-      background: var(--surface2);
-    }
-    .media-thumb-placeholder {
-      width: 100%;
-      height: 160px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--surface2);
-      font-size: 3rem;
-    }
-    .media-info { padding: 1rem; }
-    .media-title {
-      font-weight: 700;
-      margin-bottom: 0.3rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .media-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.6rem; }
-    .media-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.8rem; }
-    .tag {
-      background: rgba(108,99,255,0.2);
-      color: var(--accent2);
-      border-radius: 4px;
-      padding: 0.15rem 0.5rem;
-      font-size: 0.75rem;
-    }
-    .media-actions { display: flex; gap: 0.5rem; }
+    /* TWO COLUMN GRID */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 
-    /* ─── SEARCH BAR ─── */
-    .search-bar {
-      display: flex;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-      align-items: center;
-    }
-    .search-bar input { flex: 1; }
+    /* FILTER ROW */
+    .f-row{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+    .srch{border:1px solid var(--border);border-radius:var(--r);background:var(--white);color:var(--text);padding:10px 16px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;width:260px;transition:border-color .15s}
+    .srch:focus{border-color:var(--text)}.srch::placeholder{color:var(--muted2)}
+    .seg{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--white)}
+    .seg-b{padding:9px 18px;border:none;border-right:1px solid var(--border);background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .1s}
+    .seg-b:last-child{border-right:none}.seg-b.on{background:var(--text);color:var(--bg)}.seg-b:hover:not(.on){background:var(--bg);color:var(--text)}
 
-    /* ─── TABLE ─── */
-    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    th { text-align: left; padding: 0.75rem 1rem; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
-    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(255,255,255,0.02); }
-    .action-badge {
-      display: inline-block;
-      padding: 0.15rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-    .badge-UPLOAD { background: rgba(34,197,94,0.2); color: var(--success); }
-    .badge-DELETE { background: rgba(239,68,68,0.2); color: var(--danger); }
-    .badge-UPDATE { background: rgba(245,158,11,0.2); color: var(--warn); }
+    /* MEDIA GRID */
+    .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+    .mc{background:var(--white);cursor:pointer;transition:background .15s;position:relative}.mc:hover{background:var(--bg)}
+    .mc-th{height:170px;background:var(--stone);overflow:hidden;position:relative;border-bottom:1px solid var(--border)}
+    .mc-th img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}.mc:hover .mc-th img{transform:scale(1.04)}
+    .mc-ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted)}
+    .mc-ph-i{font-size:2.4rem}.mc-ph-t{font-size:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+    .mc-ov{position:absolute;inset:0;background:rgba(240,237,232,.93);display:flex;align-items:center;justify-content:center;gap:8px;opacity:0;transition:opacity .15s}
+    .mc:hover .mc-ov{opacity:1}
+    .mc-lbl{position:absolute;top:8px;left:8px;background:var(--white);border:1px solid var(--border);border-radius:3px;padding:3px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+    .mc-bd{padding:16px 18px 18px}
+    .mc-nm{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+    .mc-mt{font-size:12px;color:var(--muted)}.mc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+    .m-tag{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:3px 9px;font-size:12px;color:var(--muted);font-weight:500}
+    .m-tag.ai{background:#eff6ff;border-color:#bfdbfe;color:var(--blue)}
 
-    /* ─── TOAST ─── */
-    #toast {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      padding: 0.8rem 1.4rem;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s;
-      z-index: 999;
-    }
-    #toast.show { opacity: 1; }
-    #toast.success { background: var(--success); color: #fff; }
-    #toast.error { background: var(--danger); color: #fff; }
+    /* UPLOAD */
+    .type-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+    .tc{background:var(--white);padding:22px 14px;text-align:center;cursor:pointer;transition:background .15s;border:none;font-family:'DM Sans',sans-serif}
+    .tc:hover{background:var(--bg)}.tc.on{background:var(--text);color:var(--bg)}
+    .tc-i{font-size:2rem;display:block;margin-bottom:10px}.tc-l{font-size:14px;font-weight:600}
+    .dz{border:2px dashed var(--border2);border-radius:var(--r);padding:52px 32px;text-align:center;cursor:pointer;transition:all .15s;background:var(--bg);position:relative;margin-bottom:20px}
+    .dz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .dz:hover,.dz.ov{background:#f0fdf4;border-color:var(--green)}
+    .dz-i{font-size:2.2rem;margin-bottom:14px}.dz-t{font-family:'Fraunces',serif;font-size:20px;font-weight:400;margin-bottom:6px}.dz-s{font-size:14px;color:var(--muted)}.dz-f{margin-top:12px;font-size:14px;color:var(--green);font-weight:600}
+    .f2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.sp2{grid-column:1/-1}
+    .ff label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em}
+    .ff input,.ff textarea{width:100%;border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text);padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .15s,background .15s}
+    .ff input:focus,.ff textarea:focus{border-color:var(--text);background:var(--white)}
+    .ff input::placeholder,.ff textarea::placeholder{color:var(--muted2)}
+    .ff textarea{resize:vertical;min-height:90px}
+    .prog-w{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:16px;display:none}
+    .prog-f{height:100%;background:var(--green);border-radius:2px;transition:width .3s;width:0%}
 
-    /* ─── MODAL ─── */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 2rem;
-      width: 90%;
-      max-width: 480px;
-    }
-    .modal h3 { margin-bottom: 1rem; color: var(--accent2); }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
+    /* TABLE */
+    .tw{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    thead tr{border-bottom:1px solid var(--border)}
+    th{text-align:left;padding:14px 18px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+    td{padding:14px 18px;font-size:14px;border-bottom:1px solid var(--border);vertical-align:middle}
+    tr:last-child td{border-bottom:none}tbody tr:hover td{background:var(--bg)}
+    .badge{display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+    .bU{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0}
+    .bD{background:#fef2f2;color:var(--red);border:1px solid #fecaca}
+    .bE{background:#fffbeb;color:var(--amber);border:1px solid #fde68a}
 
-    /* ─── SPINNER ─── */
-    .spinner {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* WORKFLOW */
+    .wf{display:flex;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid var(--border)}.wf:last-child{border-bottom:none}
+    .wf-i{font-size:1.2rem;width:42px;height:42px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .wf-in{flex:1}.wf-nm{font-size:15px;font-weight:600;margin-bottom:4px}.wf-ds{font-size:13px;color:var(--muted)}
+    .wf-st{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;white-space:nowrap;color:var(--green)}
+    .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}.dot-g{background:var(--green)}
 
-    /* ─── EMPTY STATE ─── */
-    .empty {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: var(--muted);
-    }
-    .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
-    .empty p { font-size: 0.95rem; }
+    /* SERVICES */
+    .svc-list{display:flex;flex-direction:column}
+    .svc{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}.svc:last-child{border-bottom:none}
+    .svc-i{font-size:1.2rem;width:36px;text-align:center;flex-shrink:0}
+    .svc-in{flex:1}.svc-nm{font-size:14px;font-weight:600;margin-bottom:2px}.svc-rg{font-size:13px;color:var(--muted)}
+    .svc-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0}
 
-    /* ─── STATUS PILL ─── */
-    .status-ok { color: var(--success); font-weight: 700; }
-    .status-err { color: var(--danger); font-weight: 700; }
+    /* MODAL */
+    .ov{display:none;position:fixed;inset:0;background:rgba(26,25,22,.4);z-index:200;align-items:center;justify-content:center;padding:24px}
+    .ov.on{display:flex}
+    .modal{background:var(--white);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:640px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.15)}
+    .modal-hd{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)}
+    .modal-hd h3{font-size:17px;font-weight:600}
+    .xb{width:32px;height:32px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:all .15s}
+    .xb:hover{background:var(--bg);color:var(--text)}
+    .modal-bd{padding:24px}.modal-ft{display:flex;justify-content:flex-end;gap:12px;margin-top:24px}
+    .vm{border-radius:var(--r);overflow:hidden;margin-bottom:20px;border:1px solid var(--border);background:var(--stone)}
+    .vm img{width:100%;max-height:420px;object-fit:contain;display:block}
+    .vm video,.vm audio{width:100%;display:block}
+    .vm-doc{padding:48px;text-align:center;font-size:3.5rem}
+    .inf2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .ic label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px}.ic p{font-size:14px}
+
+    /* RECENT */
+    .ri{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+    .ri:last-child{border-bottom:none}
+    .ri:hover{background:var(--bg);margin:0 -24px;padding:12px 24px}
+    .ri-th{width:42px;height:42px;border-radius:var(--r);background:var(--stone);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden}
+    .ri-th img{width:100%;height:100%;object-fit:cover}
+    .ri-nm{font-size:14px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ri-dt{font-size:12px;color:var(--muted);flex-shrink:0}
+
+    /* TOAST */
+    #toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:var(--bg);border-radius:var(--r);padding:14px 22px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:all .2s;z-index:999;transform:translateY(4px);box-shadow:0 4px 24px rgba(0,0,0,.18)}
+    #toast.on{opacity:1;transform:none}
+    .td{width:7px;height:7px;border-radius:50%;background:var(--green)}#toast.er .td{background:#f87171}
+
+    /* SPINNER */
+    .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.1);border-top-color:var(--text);border-radius:50%;animation:rot .5s linear infinite}
+    @keyframes rot{to{transform:rotate(360deg)}}
+
+    /* EMPTY */
+    .empty{text-align:center;padding:72px 32px;color:var(--muted)}
+    .ei{font-size:3rem;opacity:.25;margin-bottom:16px}
+    .empty h3{font-family:'Fraunces',serif;font-weight:400;font-size:22px;color:var(--muted);margin-bottom:10px}.empty p{font-size:14px}
   </style>
 </head>
 <body>
+<div id="toast"><div class="td"></div><span id="tMsg"></span></div>
 
-<!-- TOAST -->
-<div id="toast"></div>
-
-<!-- EDIT MODAL -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal">
-    <h3>✏️ Edit Media</h3>
-    <input type="hidden" id="editId"/>
-    <input type="hidden" id="editMediaType"/>
-    <div style="display:grid;gap:1rem;">
-      <div>
-        <label>Title</label>
-        <input type="text" id="editTitle"/>
-      </div>
-      <div>
-        <label>Description</label>
-        <textarea id="editDesc"></textarea>
-      </div>
-      <div>
-        <label>Tags (comma-separated)</label>
-        <input type="text" id="editTags"/>
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="lp-l">
+    <div class="lp-brand">
+      <svg width="32" height="32" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="6" fill="#1a6b4a"/>
+        <path d="M7 9.5L14 7L21 9.5V14.5C21 18 17.5 20.5 14 21.5C10.5 20.5 7 18 7 14.5V9.5Z" fill="white" opacity="0.2"/>
+        <path d="M11 13.5L13.5 16L18 11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      MediaVault
+    </div>
+    <div class="lp-hero">
+      <h1>Store, organise<br/>&amp; share <em>your</em><br/>media.</h1>
+      <p>A cloud-native multimedia platform on Microsoft Azure — built for COM682 Cloud Native Development at Ulster University.</p>
+      <div class="lp-tags">
+        <div class="lp-tag">Azure Blob Storage</div>
+        <div class="lp-tag">Cosmos DB</div>
+        <div class="lp-tag">SQL Database</div>
+        <div class="lp-tag">Logic Apps</div>
+        <div class="lp-tag">App Insights</div>
+        <div class="lp-tag">Computer Vision AI</div>
+        <div class="lp-tag">GitHub CI/CD</div>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="submitEdit()">💾 Save Changes</button>
+  </div>
+  <div class="lp-r">
+    <div class="lp-form">
+      <div class="lp-title">Sign in</div>
+      <div class="lp-sub">Enter your credentials to continue</div>
+      <div class="tabs-row">
+        <button class="tab on" onclick="swTab('login')">Sign in</button>
+        <button class="tab" onclick="swTab('register')">Register</button>
+      </div>
+      <div class="err" id="errBox"></div>
+      <div id="fLogin">
+        <div class="fld"><label>Username</label><input type="text" id="lUser" placeholder="your username" autocomplete="username"/></div>
+        <div class="fld"><label>Password</label><input type="password" id="lPass" placeholder="your password"/></div>
+        <button class="btn-go" onclick="goLogin()">Sign in →</button>
+        <div class="sw-link">No account? <a onclick="swTab('register')">Register here</a></div>
+      </div>
+      <div id="fReg" style="display:none">
+        <div class="fld"><label>Full name</label><input type="text" id="rName" placeholder="Your full name"/></div>
+        <div class="fld"><label>Username</label><input type="text" id="rUser" placeholder="choose a username"/></div>
+        <div class="fld"><label>Email</label><input type="email" id="rEmail" placeholder="you@example.com"/></div>
+        <div class="fld"><label>Password</label><input type="password" id="rPass" placeholder="choose a password"/></div>
+        <div class="fld"><label>Account type</label>
+          <select id="rRole">
+            <option value="user">User — standard access</option>
+            <option value="admin">Admin — full access</option>
+          </select>
+        </div>
+        <button class="btn-go" onclick="goRegister()">Create account →</button>
+        <div class="sw-link">Have an account? <a onclick="swTab('login')">Sign in</a></div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- NAV -->
-<nav>
-  <div class="nav-brand"><span>🎬</span> MediaVault</div>
-  <div class="nav-tabs">
-    <button class="tab-btn active" onclick="showPage('dashboard')">📁 Dashboard</button>
-    <button class="tab-btn" onclick="showPage('upload')">⬆️ Upload</button>
-    <button class="tab-btn" onclick="showPage('users')">👥 Users</button>
-    <button class="tab-btn" onclick="showPage('logs')">📋 Audit Logs</button>
-  </div>
-  <div class="user-badge">
-    Active user:
-    <select class="user-select" id="activeUser" onchange="refreshLogs()">
-      <option value="">— none —</option>
-    </select>
-  </div>
-</nav>
-
-<main>
-
-  <!-- ═══ DASHBOARD PAGE ═══ -->
-  <div class="page active" id="page-dashboard">
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="🔍 Search by title or tag…" oninput="filterMedia()"/>
-      <button class="btn btn-ghost" onclick="loadMedia()">↻ Refresh</button>
-    </div>
-    <div id="mediaGrid" class="media-grid"></div>
-  </div>
-
-  <!-- ═══ UPLOAD PAGE ═══ -->
-  <div class="page" id="page-upload">
-    <div class="card">
-      <h2>⬆️ Upload New Media</h2>
-      <div style="display:grid;gap:1rem;">
-        <div class="file-drop" id="fileDrop">
-          <input type="file" id="fileInput" accept="image/*,video/*,.pdf,.doc,.docx" onchange="onFileSelected()"/>
-          <div class="file-drop-icon">📂</div>
-          <p>Click or drag & drop a file here</p>
-          <p style="font-size:0.8rem;margin-top:0.3rem;">Images, Videos, PDFs, Documents</p>
-          <div class="file-name" id="selectedFileName"></div>
+<!-- APP -->
+<div id="app">
+  <div class="app-shell">
+    <aside class="sb">
+      <div class="sb-hd">
+        <div class="sb-brand">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+            <rect width="28" height="28" rx="6" fill="#1a6b4a"/>
+            <path d="M7 9.5L14 7L21 9.5V14.5C21 18 17.5 20.5 14 21.5C10.5 20.5 7 18 7 14.5V9.5Z" fill="white" opacity="0.2"/>
+            <path d="M11 13.5L13.5 16L18 11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          MediaVault
         </div>
-        <div class="form-grid">
-          <div>
-            <label>Title</label>
-            <input type="text" id="uploadTitle" placeholder="Enter a title…"/>
-          </div>
-          <div>
-            <label>Tags (comma-separated)</label>
-            <input type="text" id="uploadTags" placeholder="e.g. nature, beach, travel"/>
-          </div>
-          <div class="form-full">
-            <label>Description</label>
-            <textarea id="uploadDesc" placeholder="Optional description…"></textarea>
+        <div class="sb-user">
+          <div class="sb-av" id="sbAv">?</div>
+          <div class="sb-info">
+            <div class="sb-nm" id="sbNm">—</div>
+            <div class="sb-role-txt" id="sbRole"></div>
           </div>
         </div>
-        <div>
-          <button class="btn btn-primary" id="uploadBtn" onclick="uploadMedia()">⬆️ Upload to Azure</button>
+      </div>
+      <nav class="sb-nav">
+        <div class="sb-grp">
+          <span class="sb-gl">Workspace</span>
+          <button class="sb-lnk on" onclick="go('dashboard')">▣ Dashboard</button>
+          <button class="sb-lnk" onclick="go('gallery')">⊞ Media library <span class="sb-cnt" id="totalN">0</span></button>
+          <button class="sb-lnk" onclick="go('upload')">↑ Upload</button>
+        </div>
+        <div class="sb-grp">
+          <button class="sb-lnk" id="workflowsLink" onclick="go('workflows')">⚡ Logic Apps</button>
+<button class="sb-lnk" id="usersLink" onclick="go('users')">◎ Users</button>
+<button class="sb-lnk" id="logsLink" onclick="go('logs')">≡ Audit logs</button>
+        </div>
+      </nav>
+      <div class="sb-ft"><button class="btn-out" onclick="goOut()">← Sign out</button></div>
+    </aside>
+
+    <div class="main-area">
+      <div class="topbar">
+        <div class="crumb">MediaVault / <strong id="pgCrumb">Dashboard</strong></div>
+        <div class="tb-r">
+          <span id="adminBadge" style="display:none" class="admin-badge">Admin</span>
+          <button class="tb-btn" onclick="loadMedia();showT('Refreshed')">↻ Refresh</button>
+          <button class="tb-btn pk" onclick="go('upload')">↑ Upload</button>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- ═══ USERS PAGE ═══ -->
-  <div class="page" id="page-users">
-    <div class="card">
-      <h2>➕ Add User</h2>
-      <div class="form-grid">
-        <div>
-          <label>Username</label>
-          <input type="text" id="newUsername" placeholder="e.g. faysal_a"/>
-        </div>
-        <div>
-          <label>Email</label>
-          <input type="email" id="newEmail" placeholder="e.g. faysal@email.com"/>
-        </div>
-      </div>
-      <div style="margin-top:1rem;">
-        <button class="btn btn-primary" onclick="createUser()">👤 Create User</button>
-      </div>
-    </div>
-    <div class="card">
-      <h2>👥 All Users</h2>
-      <div id="usersTable"></div>
-    </div>
-  </div>
+      <div class="content">
 
-  <!-- ═══ LOGS PAGE ═══ -->
-  <div class="page" id="page-logs">
-    <div class="card">
-      <h2>📋 Audit Logs</h2>
-      <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:1rem;">
-        <label style="margin:0;">Filter by user:</label>
-        <select class="user-select" id="logsUserFilter" style="width:200px;" onchange="refreshLogs()">
-          <option value="">All users</option>
-        </select>
-        <button class="btn btn-ghost" onclick="refreshLogs()">↻ Refresh</button>
-      </div>
-      <div id="logsTable"></div>
-    </div>
-  </div>
-
-</main>
-
-<script>
-  // ─────────────────────────────────────────────
-  // CONFIG – change this if your API is hosted elsewhere
-  // ─────────────────────────────────────────────
-  const API = window.location.origin + '/api';
-
-  let allMedia = [];
-
-  // ─────────────────────────────────────────────
-  // NAVIGATION
-  // ─────────────────────────────────────────────
-  function showPage(name) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('page-' + name).classList.add('active');
-    document.querySelectorAll('.tab-btn').forEach(b => {
-      if (b.textContent.toLowerCase().includes(name)) b.classList.add('active');
-    });
-    if (name === 'dashboard') loadMedia();
-    if (name === 'users') loadUsers();
-    if (name === 'logs') refreshLogs();
-  }
-
-  // ─────────────────────────────────────────────
-  // TOAST
-  // ─────────────────────────────────────────────
-  function toast(msg, type = 'success') {
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `show ${type}`;
-    setTimeout(() => t.className = '', 3000);
-  }
-
-  // ─────────────────────────────────────────────
-  // FILE DROP
-  // ─────────────────────────────────────────────
-  const fileDrop = document.getElementById('fileDrop');
-  fileDrop.addEventListener('dragover', e => { e.preventDefault(); fileDrop.classList.add('dragover'); });
-  fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('dragover'));
-  fileDrop.addEventListener('drop', e => {
-    e.preventDefault();
-    fileDrop.classList.remove('dragover');
-    document.getElementById('fileInput').files = e.dataTransfer.files;
-    onFileSelected();
-  });
-
-  function onFileSelected() {
-    const f = document.getElementById('fileInput').files[0];
-    if (f) document.getElementById('selectedFileName').textContent = `📎 ${f.name}`;
-  }
-
-  // ─────────────────────────────────────────────
-  // MEDIA – LOAD & DISPLAY
-  // ─────────────────────────────────────────────
-  async function loadMedia() {
-    const grid = document.getElementById('mediaGrid');
-    grid.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted)"><div class="spinner"></div><p style="margin-top:1rem">Loading media…</p></div>';
-    try {
-      const res = await fetch(`${API}/media`);
-      allMedia = await res.json();
-      renderMedia(allMedia);
-    } catch (e) {
-      grid.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>Could not connect to API.<br/><small>${e.message}</small></p></div>`;
-    }
-  }
-
-  function renderMedia(items) {
-    const grid = document.getElementById('mediaGrid');
-    if (!items.length) {
-      grid.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><p>No media uploaded yet.<br/>Go to Upload to add your first file.</p></div>';
-      return;
-    }
-    grid.innerHTML = items.map(m => {
-      const isImage = m.mediaType === 'image';
-      const thumb = isImage
-        ? `<img class="media-thumb" src="${m.blobUrl}" alt="${m.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
-           <div class="media-thumb-placeholder" style="display:none">${mediaIcon(m.mediaType)}</div>`
-        : `<div class="media-thumb-placeholder">${mediaIcon(m.mediaType)}</div>`;
-      const tags = (m.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
-      const date = new Date(m.uploadedAt).toLocaleDateString();
-      const size = m.fileSize ? (m.fileSize / 1024).toFixed(1) + ' KB' : '';
-      return `
-        <div class="media-card" id="mc-${m.id}">
-          ${thumb}
-          <div class="media-info">
-            <div class="media-title" title="${m.title}">${m.title}</div>
-            <div class="media-meta">${date} • ${m.mimeType} ${size ? '• ' + size : ''}</div>
-            <div class="media-tags">${tags}</div>
-            <div class="media-actions">
-              <a class="btn btn-ghost" href="${m.blobUrl}" target="_blank" style="font-size:0.8rem;padding:0.4rem 0.8rem;">👁 View</a>
-              <button class="btn btn-ghost" style="font-size:0.8rem;padding:0.4rem 0.8rem;" onclick="openEdit('${m.id}','${escapeQuotes(m.title)}','${escapeQuotes(m.description)}','${(m.tags||[]).join(',')}','${m.mediaType}')">✏️ Edit</button>
-              <button class="btn btn-danger" style="font-size:0.8rem;padding:0.4rem 0.8rem;" onclick="deleteMedia('${m.id}','${m.mediaType}')">🗑</button>
+        <!-- DASHBOARD -->
+        <div class="page on" id="page-dashboard">
+          <div class="ph-row">
+            <div class="ph-row-left">
+              <h1>Dashboard</h1>
+              <p>Overview of your MediaVault workspace on Azure</p>
+            </div>
+            <button class="btn btn-dk" onclick="go('upload')">↑ Upload media</button>
+          </div>
+          <div class="stat-row">
+            <div class="sc"><div class="sc-l">Images</div><div class="sc-v" id="sImg">0</div><div class="sc-s">Blob Storage</div></div>
+            <div class="sc"><div class="sc-l">Videos</div><div class="sc-v" id="sVid">0</div><div class="sc-s">Blob Storage</div></div>
+            <div class="sc"><div class="sc-l">Audio</div><div class="sc-v" id="sAud">0</div><div class="sc-s">Blob Storage</div></div>
+            <div class="sc"><div class="sc-l">Documents</div><div class="sc-v" id="sDoc">0</div><div class="sc-s">Blob Storage</div></div>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <div class="card-hd">Recent uploads <button class="btn btn-sm" onclick="go('gallery')">View all →</button></div>
+              <div class="card-bd" style="padding:0 24px" id="dashRecent"></div>
+            </div>
+            <div class="card">
+              <div class="card-hd">Azure services</div>
+              <div class="card-bd" style="padding:0 24px">
+                <div class="svc-list">
+                  <div class="svc"><span class="svc-i">☁️</span><div class="svc-in"><div class="svc-nm">App Service</div><div class="svc-rg">mediavault-api · Germany West Central</div></div><div class="svc-dot"></div></div>
+                  <div class="svc"><span class="svc-i">🗄️</span><div class="svc-in"><div class="svc-nm">Cosmos DB</div><div class="svc-rg">NoSQL · Serverless</div></div><div class="svc-dot"></div></div>
+                  <div class="svc"><span class="svc-i">📦</span><div class="svc-in"><div class="svc-nm">Blob Storage</div><div class="svc-rg">mediavault-files container</div></div><div class="svc-dot"></div></div>
+                  <div class="svc"><span class="svc-i">🗃️</span><div class="svc-in"><div class="svc-nm">SQL Database</div><div class="svc-rg">mediavaultdb · Users &amp; Audit logs</div></div><div class="svc-dot"></div></div>
+                  <div class="svc"><span class="svc-i">⚡</span><div class="svc-in"><div class="svc-nm">Logic Apps</div><div class="svc-rg">Upload notification workflow</div></div><div class="svc-dot"></div></div>
+                  <div class="svc"><span class="svc-i">📊</span><div class="svc-in"><div class="svc-nm">Application Insights</div><div class="svc-rg">mediavault-insights · Live monitoring</div></div><div class="svc-dot"></div></div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>`;
-    }).join('');
-  }
+        </div>
 
-  function mediaIcon(type) {
-    const icons = { image: '🖼️', video: '🎬', application: '📄', audio: '🎵' };
-    return icons[type] || '📁';
-  }
+        <!-- GALLERY -->
+        <div class="page" id="page-gallery">
+          <div class="ph-row">
+            <div class="ph-row-left">
+              <h1>Media library</h1>
+              <p id="gallerySubtitle">All files in Azure Blob Storage · metadata in Cosmos DB</p>
+            </div>
+            <button class="btn btn-dk" onclick="go('upload')">↑ Upload</button>
+          </div>
+          <div class="f-row">
+            <input class="srch" type="text" id="srchQ" placeholder="Search by name or tag…" oninput="applyF()"/>
+            <div class="seg">
+              <button class="seg-b on" data-f="all" onclick="setF('all',this)">All</button>
+              <button class="seg-b" data-f="image" onclick="setF('image',this)">Images</button>
+              <button class="seg-b" data-f="video" onclick="setF('video',this)">Videos</button>
+              <button class="seg-b" data-f="audio" onclick="setF('audio',this)">Audio</button>
+              <button class="seg-b" data-f="application" onclick="setF('application',this)">Docs</button>
+            </div>
+            <button class="btn btn-sm" onclick="loadMedia()">↻ Refresh</button>
+          </div>
+          <div id="mGrid" class="mgrid"></div>
+        </div>
 
-  function escapeQuotes(s) { return (s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+        <!-- UPLOAD -->
+        <div class="page" id="page-upload">
+          <div class="ph">
+            <h1>Upload media</h1>
+            <p>Files go to Azure Blob Storage · metadata saved to Cosmos DB</p>
+          </div>
+          <div class="card">
+            <div class="card-hd">Select content type</div>
+            <div class="card-bd">
+              <div class="type-row">
+                <button class="tc on" onclick="pickT(this,'image/*')"><span class="tc-i">🖼️</span><span class="tc-l">Image</span></button>
+                <button class="tc" onclick="pickT(this,'video/*')"><span class="tc-i">🎬</span><span class="tc-l">Video</span></button>
+                <button class="tc" onclick="pickT(this,'audio/*')"><span class="tc-i">🎵</span><span class="tc-l">Audio</span></button>
+                <button class="tc" onclick="pickT(this,'.pdf,.doc,.docx,.txt,.pptx')"><span class="tc-i">📄</span><span class="tc-l">Document</span></button>
+              </div>
+              <div class="dz" id="dz">
+                <input type="file" id="fileIn" accept="image/*" onchange="onF()"/>
+                <div class="dz-i">☁️</div>
+                <div class="dz-t">Drop your file here or click to browse</div>
+                <div class="dz-s">Supports images, videos, audio and documents</div>
+                <div class="dz-f" id="dzNm"></div>
+              </div>
+              <div class="f2">
+                <div class="ff"><label>Title</label><input type="text" id="upT" placeholder="Give it a name…"/></div>
+                <div class="ff"><label>Tags (comma separated)</label><input type="text" id="upTg" placeholder="e.g. nature, travel, 2024"/></div>
+                <div class="ff sp2"><label>Description (optional)</label><textarea id="upD" placeholder="Add a description…"></textarea></div>
+              </div>
+              <div class="prog-w" id="prog"><div class="prog-f" id="progF"></div></div>
+              <div style="margin-top:20px;display:flex;align-items:center;gap:14px">
+                <button class="btn btn-dk" id="upBtn" onclick="doUpload()">↑ Upload to Azure</button>
+                <span id="upSt" style="font-size:13px;color:var(--muted)"></span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  function filterMedia() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = allMedia.filter(m =>
-      m.title.toLowerCase().includes(q) ||
-      (m.tags || []).some(t => t.toLowerCase().includes(q))
-    );
-    renderMedia(filtered);
-  }
+        <!-- LOGIC APPS -->
+        <div class="page" id="page-workflows">
+          <div class="ph">
+            <h1>Logic Apps</h1>
+            <p>Automated workflows triggered by media events in MediaVault</p>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <div class="card-hd">Active workflows</div>
+              <div class="card-bd" style="padding:0 24px">
+                <div class="wf"><div class="wf-i">📧</div><div class="wf-in"><div class="wf-nm">Upload notification</div><div class="wf-ds">Sends email alert when new media is uploaded · HTTP trigger</div></div><div class="wf-st"><div class="dot dot-g"></div>Active</div></div>
+                <div class="wf"><div class="wf-i">🤖</div><div class="wf-in"><div class="wf-nm">AI Auto-tag</div><div class="wf-ds">Computer Vision analyses images and tags them automatically</div></div><div class="wf-st"><div class="dot dot-g"></div>Active</div></div>
+                <div class="wf"><div class="wf-i">🗑️</div><div class="wf-in"><div class="wf-nm">Delete cleanup</div><div class="wf-ds">Logs deletions to SQL and removes orphaned Blob entries</div></div><div class="wf-st"><div class="dot dot-g"></div>Active</div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-hd">Test notification manually</div>
+              <div class="card-bd">
+                <p style="font-size:14px;color:var(--muted);margin-bottom:18px">In production this fires automatically on every upload. Use this to test the workflow manually.</p>
+                <div style="display:grid;gap:14px;margin-bottom:18px">
+                  <div class="ff"><label>Recipient email</label><input type="email" id="laEmail" placeholder="you@example.com"/></div>
+                  <div class="ff"><label>Message</label><input type="text" id="laMsg" placeholder="New media uploaded to MediaVault!"/></div>
+                </div>
+                <button class="btn btn-dk" onclick="triggerLA()">⚡ Trigger Logic App</button>
+                <div id="laRes" style="margin-top:14px;font-size:13px;color:var(--muted)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  // ─────────────────────────────────────────────
-  // MEDIA – UPLOAD
-  // ─────────────────────────────────────────────
-  async function uploadMedia() {
-    const file = document.getElementById('fileInput').files[0];
-    if (!file) { toast('Please select a file first', 'error'); return; }
+        <!-- USERS -->
+        <div class="page" id="page-users">
+          <div class="ph">
+            <h1>Users</h1>
+            <p>Manage platform accounts — stored in Azure SQL Database</p>
+          </div>
+          <div class="card">
+            <div class="card-hd">Add new user</div>
+            <div class="card-bd">
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end">
+                <div class="ff"><label>Username</label><input type="text" id="nUsr" placeholder="username"/></div>
+                <div class="ff"><label>Email</label><input type="email" id="nEml" placeholder="email@example.com"/></div>
+                <button class="btn btn-dk" style="height:46px" onclick="addUser()">+ Add user</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hd">All users</div>
+            <div class="card-bd" style="padding:0"><div class="tw" id="usrTbl"></div></div>
+          </div>
+        </div>
 
-    const btn = document.getElementById('uploadBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Uploading…';
+        <!-- LOGS -->
+        <div class="page" id="page-logs">
+          <div class="ph">
+            <h1>Audit logs</h1>
+            <p>Full activity trail stored in Azure SQL Database</p>
+          </div>
+          <div class="card">
+            <div class="card-hd">
+              Activity log
+              <div style="display:flex;gap:10px;align-items:center">
+                <span style="font-size:13px;color:var(--muted)">Filter by user:</span>
+                <select id="lgF" onchange="loadLogs()" style="border:1px solid var(--border);border-radius:var(--r);background:var(--bg);color:var(--text);padding:8px 12px;font-family:DM Sans,sans-serif;font-size:14px;outline:none">
+                  <option value="">All users</option>
+                </select>
+                <button class="btn btn-sm" onclick="loadLogs()">↻ Refresh</button>
+              </div>
+            </div>
+            <div class="card-bd" style="padding:0"><div class="tw" id="logsTbl"></div></div>
+          </div>
+        </div>
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('title', document.getElementById('uploadTitle').value || file.name);
-    formData.append('description', document.getElementById('uploadDesc').value);
-    formData.append('tags', document.getElementById('uploadTags').value);
-    const uid = document.getElementById('activeUser').value;
-    if (uid) formData.append('userId', uid);
+      </div>
+    </div>
+  </div>
+</div>
 
-    try {
-      const res = await fetch(`${API}/media`, { method: 'POST', body: formData });
-      if (!res.ok) throw new Error((await res.json()).error);
-      toast('✅ Media uploaded successfully!');
-      document.getElementById('fileInput').value = '';
-      document.getElementById('selectedFileName').textContent = '';
-      document.getElementById('uploadTitle').value = '';
-      document.getElementById('uploadDesc').value = '';
-      document.getElementById('uploadTags').value = '';
-    } catch (e) {
-      toast('Upload failed: ' + e.message, 'error');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '⬆️ Upload to Azure';
-    }
-  }
+<!-- VIEW MODAL -->
+<div class="ov" id="vOv">
+  <div class="modal">
+    <div class="modal-hd"><h3 id="vTit">Preview</h3><button class="xb" onclick="closeOv('vOv')">✕</button></div>
+    <div class="modal-bd">
+      <div class="vm" id="vMed"></div>
+      <div class="inf2" id="vInf"></div>
+      <div class="modal-ft">
+        <a id="vOpn" href="#" target="_blank" class="btn">↗ Open original</a>
+        <button class="btn" onclick="editFV()">✎ Edit</button>
+        <button class="btn btn-rd" id="vDelBtn" onclick="delFV()">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-  // ─────────────────────────────────────────────
-  // MEDIA – EDIT
-  // ─────────────────────────────────────────────
-  function openEdit(id, title, desc, tags, mediaType) {
-    document.getElementById('editId').value = id;
-    document.getElementById('editMediaType').value = mediaType;
-    document.getElementById('editTitle').value = title;
-    document.getElementById('editDesc').value = desc;
-    document.getElementById('editTags').value = tags;
-    document.getElementById('editModal').classList.add('open');
-  }
-  function closeModal() {
-    document.getElementById('editModal').classList.remove('open');
-  }
-  async function submitEdit() {
-    const id = document.getElementById('editId').value;
-    const body = {
-      title: document.getElementById('editTitle').value,
-      description: document.getElementById('editDesc').value,
-      tags: document.getElementById('editTags').value,
-      userId: document.getElementById('activeUser').value || undefined,
-    };
-    try {
-      const res = await fetch(`${API}/media/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) throw new Error((await res.json()).error);
-      toast('✅ Media updated!');
-      closeModal();
-      loadMedia();
-    } catch (e) {
-      toast('Update failed: ' + e.message, 'error');
-    }
-  }
+<!-- EDIT MODAL -->
+<div class="ov" id="eOv">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-hd"><h3>Edit media</h3><button class="xb" onclick="closeOv('eOv')">✕</button></div>
+    <div class="modal-bd">
+      <input type="hidden" id="eId"/><input type="hidden" id="eMT"/>
+      <div style="display:grid;gap:16px">
+        <div class="ff"><label>Title</label><input type="text" id="eT"/></div>
+        <div class="ff"><label>Description</label><textarea id="eD"></textarea></div>
+        <div class="ff"><label>Tags (comma separated)</label><input type="text" id="eTg"/></div>
+      </div>
+      <div class="modal-ft">
+        <button class="btn" onclick="closeOv('eOv')">Cancel</button>
+        <button class="btn btn-dk" onclick="saveEdit()">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-  // ─────────────────────────────────────────────
-  // MEDIA – DELETE
-  // ─────────────────────────────────────────────
-  async function deleteMedia(id) {
-    if (!confirm('Delete this media item? This cannot be undone.')) return;
-    const uid = document.getElementById('activeUser').value;
-    try {
-      const res = await fetch(`${API}/media/${id}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: uid || undefined }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error);
-      toast('🗑️ Media deleted');
-      loadMedia();
-    } catch (e) {
-      toast('Delete failed: ' + e.message, 'error');
-    }
-  }
+<script>
+const API=window.location.origin+'/api';
+let allMedia=[],curF='all',curUser=null,viewId=null;
+const $=id=>document.getElementById(id);
+function showT(m,e=false){$('tMsg').textContent=m;const t=$('toast');t.className='on'+(e?' er':'');setTimeout(()=>t.className='',3000);}
+const ico=t=>({image:'🖼️',video:'🎬',audio:'🎵',application:'📄'}[t]||'📁');
+const sz=b=>!b?'':(b<1024?b+'B':b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(1)+'MB');
+const dt=s=>new Date(s).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+const isAdmin=()=>curUser?.role==='admin';
 
-  // ─────────────────────────────────────────────
-  // USERS
-  // ─────────────────────────────────────────────
-  async function loadUsers() {
-    const container = document.getElementById('usersTable');
-    container.innerHTML = '<div class="spinner"></div>';
-    try {
-      const res = await fetch(`${API}/users`);
-      const users = await res.json();
-      if (!users.length) {
-        container.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><p>No users yet.</p></div>';
-      } else {
-        container.innerHTML = `
-          <table>
-            <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Created</th></tr></thead>
-            <tbody>${users.map(u => `
-              <tr>
-                <td>${u.userId}</td>
-                <td>${u.username}</td>
-                <td>${u.email}</td>
-                <td>${new Date(u.createdAt).toLocaleDateString()}</td>
-              </tr>`).join('')}
-            </tbody>
-          </table>`;
-        // Populate user selects
-        const options = users.map(u => `<option value="${u.userId}">${u.username}</option>`).join('');
-        document.getElementById('activeUser').innerHTML = '<option value="">— none —</option>' + options;
-        document.getElementById('logsUserFilter').innerHTML = '<option value="">All users</option>' + options;
-      }
-    } catch (e) {
-      container.innerHTML = `<p style="color:var(--danger)">Error: ${e.message}</p>`;
-    }
-  }
+function swTab(t){document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',(i===0&&t==='login')||(i===1&&t==='register')));$('fLogin').style.display=t==='login'?'block':'none';$('fReg').style.display=t==='register'?'block':'none';$('errBox').style.display='none';}
+function showErr(m){$('errBox').textContent='⚠ '+m;$('errBox').style.display='block';}
 
-  async function createUser() {
-    const username = document.getElementById('newUsername').value.trim();
-    const email = document.getElementById('newEmail').value.trim();
-    if (!username || !email) { toast('Username and email are required', 'error'); return; }
-    try {
-      const res = await fetch(`${API}/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error);
-      toast('✅ User created!');
-      document.getElementById('newUsername').value = '';
-      document.getElementById('newEmail').value = '';
-      loadUsers();
-    } catch (e) {
-      toast('Error: ' + e.message, 'error');
-    }
-  }
+async function goLogin(){
+  const u=$('lUser').value.trim(),p=$('lPass').value;
+  if(!u||!p){showErr('Enter username and password');return;}
+  try{
+    const r=await fetch(`${API}/users/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
+    const data=await r.json();
+    if(!r.ok){showErr(data.error);return;}
+    enterApp(data);
+  }catch(e){showErr('Cannot connect: '+e.message);}
+}
 
-  // ─────────────────────────────────────────────
-  // AUDIT LOGS
-  // ─────────────────────────────────────────────
-  async function refreshLogs() {
-    const container = document.getElementById('logsTable');
-    const userId = document.getElementById('logsUserFilter')?.value || '';
-    container.innerHTML = '<div class="spinner"></div>';
-    const url = userId ? `${API}/users/${userId}/logs` : `${API}/users/all/logs`;
-    try {
-      let logs = [];
-      if (userId) {
-        const res = await fetch(url);
-        logs = await res.json();
-      } else {
-        // Fetch all users and aggregate logs
-        const usersRes = await fetch(`${API}/users`);
-        const users = await usersRes.json();
-        for (const u of users) {
-          const r = await fetch(`${API}/users/${u.userId}/logs`);
-          const l = await r.json();
-          logs = logs.concat(l);
-        }
-        logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      }
-      if (!logs.length) {
-        container.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No audit logs yet.</p></div>';
-      } else {
-        container.innerHTML = `
-          <table>
-            <thead><tr><th>Log ID</th><th>User</th><th>Action</th><th>Media ID</th><th>Timestamp</th></tr></thead>
-            <tbody>${logs.map(l => `
-              <tr>
-                <td>${l.logId}</td>
-                <td>${l.username || '—'}</td>
-                <td><span class="action-badge badge-${l.action}">${l.action}</span></td>
-                <td style="font-size:0.78rem;color:var(--muted)">${l.mediaId || '—'}</td>
-                <td>${new Date(l.timestamp).toLocaleString()}</td>
-              </tr>`).join('')}
-            </tbody>
-          </table>`;
-      }
-    } catch (e) {
-      container.innerHTML = `<p style="color:var(--danger)">Error: ${e.message}</p>`;
-    }
-  }
+async function goRegister(){
+  const u=$('rUser').value.trim(),e=$('rEmail').value.trim(),p=$('rPass').value,role=$('rRole').value;
+  if(!u||!e||!p){showErr('Fill in all fields');return;}
+  try{
+    const r=await fetch(`${API}/users`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,email:e,password:p,role})});
+    if(!r.ok)throw new Error((await r.json()).error);
+    enterApp(await r.json());
+  }catch(e){showErr(e.message);}
+}
 
-  // ─────────────────────────────────────────────
-  // INIT
-  // ─────────────────────────────────────────────
-  window.addEventListener('DOMContentLoaded', () => {
-    loadMedia();
-    // Pre-load users for the active-user selector
-    fetch(`${API}/users`).then(r => r.json()).then(users => {
-      if (users.length) {
-        const opts = users.map(u => `<option value="${u.userId}">${u.username}</option>`).join('');
-        document.getElementById('activeUser').innerHTML = '<option value="">— none —</option>' + opts;
-        document.getElementById('logsUserFilter').innerHTML = '<option value="">All users</option>' + opts;
-      }
-    }).catch(() => {});
+function enterApp(user){
+  curUser=user;
+  $('loginPage').style.display='none';
+  $('app').style.display='block';
+  $('sbAv').textContent=user.username[0].toUpperCase();
+  $('sbNm').textContent=user.username;
+  $('sbRole').textContent=user.role==='admin'?'Administrator':'Member';
+  $('adminBadge').style.display=isAdmin()?'inline-block':'none';
+  $('usersLink').style.display=isAdmin()?'flex':'none';
+  $('workflowsLink').style.display=isAdmin()?'flex':'none';
+  $('logsLink').style.display=isAdmin()?'flex':'none';
+  if(!isAdmin())$('gallerySubtitle').textContent='Your uploads in Azure Blob Storage';
+  loadMedia();loadDashboard();fillLgF();
+}
+
+function goOut(){curUser=null;$('app').style.display='none';$('loginPage').style.display='grid';$('lUser').value='';$('lPass').value='';}
+
+const pN={dashboard:'Dashboard',gallery:'Media library',upload:'Upload',workflows:'Logic Apps',users:'Users',logs:'Audit logs'};
+function go(page){
+  if(page==='users'&&!isAdmin()){showT('Admin access required',true);return;}
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.sb-lnk').forEach(b=>b.classList.remove('on'));
+  $('page-'+page).classList.add('on');
+  $('pgCrumb').textContent=pN[page]||page;
+  document.querySelectorAll('.sb-lnk').forEach(b=>{
+    const map={dashboard:'dashboard',gallery:'media library',upload:'upload',workflows:'logic apps',users:'users',logs:'audit logs'};
+    if(b.textContent.trim().toLowerCase().includes(map[page]||page))b.classList.add('on');
   });
+  if(page==='gallery')loadMedia();
+  if(page==='users')loadUsers();
+  if(page==='logs')loadLogs();
+  if(page==='dashboard')loadDashboard();
+}
+
+async function loadDashboard(){
+  try{
+    const r=await fetch(`${API}/media`);
+    let media=await r.json();
+    if(!isAdmin())media=media.filter(m=>m.uploadedBy==curUser.userId);
+    allMedia=media;
+    $('sImg').textContent=media.filter(m=>m.mediaType==='image').length;
+    $('sVid').textContent=media.filter(m=>m.mediaType==='video').length;
+    $('sAud').textContent=media.filter(m=>m.mediaType==='audio').length;
+    $('sDoc').textContent=media.filter(m=>m.mediaType==='application').length;
+    $('totalN').textContent=media.length;
+    const rec=media.slice(0,6);
+    $('dashRecent').innerHTML=rec.length?rec.map(m=>`<div class="ri" onclick="openV('${m.id}')"><div class="ri-th">${m.mediaType==='image'?`<img src="${m.blobUrl}" onerror="this.parentElement.textContent='${ico(m.mediaType)}'"/>`:`${ico(m.mediaType)}`}</div><span class="ri-nm">${m.title}</span><span class="ri-dt">${dt(m.uploadedAt)}</span></div>`).join(''):'<div class="empty" style="padding:2rem"><div class="ei">📭</div><p>No uploads yet</p></div>';
+  }catch(e){console.error(e);}
+}
+
+let upAcc='image/*';
+function pickT(el,acc){document.querySelectorAll('.tc').forEach(b=>b.classList.remove('on'));el.classList.add('on');upAcc=acc;$('fileIn').accept=acc;$('dzNm').textContent='';$('fileIn').value='';}
+const dz=$('dz');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('ov');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('ov'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('ov');$('fileIn').files=e.dataTransfer.files;onF();});
+function onF(){const f=$('fileIn').files[0];if(f)$('dzNm').textContent='📎 '+f.name;}
+
+async function doUpload(){
+  const file=$('fileIn').files[0];
+  if(!file){showT('Select a file first',true);return;}
+  const btn=$('upBtn');btn.disabled=true;btn.innerHTML='<span class="spin"></span> Uploading…';
+  $('upSt').textContent='Sending to Azure Blob Storage…';
+  $('prog').style.display='block';$('progF').style.width='25%';
+  const fd=new FormData();
+  fd.append('file',file);fd.append('title',$('upT').value||file.name);
+  fd.append('description',$('upD').value);fd.append('tags',$('upTg').value);
+  if(curUser)fd.append('userId',curUser.userId);
+  try{
+    $('progF').style.width='60%';
+    const r=await fetch(`${API}/media`,{method:'POST',body:fd});
+    if(!r.ok)throw new Error((await r.json()).error);
+    $('progF').style.width='100%';
+    $('upSt').textContent='✓ Uploaded successfully';
+    showT('Uploaded to Azure Blob Storage');
+    setTimeout(()=>{$('prog').style.display='none';$('upSt').textContent='';},2000);
+    $('fileIn').value='';$('dzNm').textContent='';$('upT').value='';$('upD').value='';$('upTg').value='';
+    loadMedia();loadDashboard();
+  }catch(e){showT(e.message,true);$('prog').style.display='none';$('upSt').textContent='';}
+  finally{btn.disabled=false;btn.innerHTML='↑ Upload to Azure';}
+}
+
+async function loadMedia(){
+  const g=$('mGrid');
+  if(g)g.innerHTML='<div class="empty" style="grid-column:1/-1;padding:3rem"><div class="spin" style="margin:0 auto 12px;width:24px;height:24px;border-width:2px"></div><p>Loading from Azure…</p></div>';
+  try{
+    const r=await fetch(`${API}/media`);
+    let media=await r.json();
+    if(!isAdmin())media=media.filter(m=>m.uploadedBy==curUser?.userId);
+    allMedia=media;$('totalN').textContent=media.length;applyF();
+  }catch(e){if(g)g.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">⚠️</div><h3>Error</h3><p>${e.message}</p></div>`;}
+}
+
+function setF(f,el){curF=f;document.querySelectorAll('.seg-b').forEach(b=>b.classList.remove('on'));el.classList.add('on');applyF();}
+function applyF(){const q=($('srchQ')?.value||'').toLowerCase();let items=allMedia;if(curF!=='all')items=items.filter(m=>m.mediaType===curF);if(q)items=items.filter(m=>m.title.toLowerCase().includes(q)||(m.tags||[]).some(t=>t.toLowerCase().includes(q)));renderGrid(items);}
+
+function renderGrid(items){
+  const g=$('mGrid');if(!g)return;
+  if(!items.length){g.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ei">📭</div><h3>Nothing here yet</h3><p>Upload your first file to get started</p></div>';return;}
+  g.innerHTML=items.map(m=>{
+    const isI=m.mediaType==='image';
+    const th=isI?`<img src="${m.blobUrl}" alt="${m.title}" loading="lazy" onerror="this.style.display='none';this.nextSibling.style.display='flex'"/><div class="mc-ph" style="display:none"><span class="mc-ph-i">${ico(m.mediaType)}</span></div>`:`<div class="mc-ph"><span class="mc-ph-i">${ico(m.mediaType)}</span><span class="mc-ph-t">${m.mediaType}</span></div>`;
+    const tags=(m.tags||[]).slice(0,3).map(t=>`<span class="m-tag ${t.startsWith('ai:')?'ai':''}">${t.replace('ai:','')}</span>`).join('');
+    const canDel=isAdmin()||m.uploadedBy==curUser?.userId;
+    return `<div class="mc"><div class="mc-th">${th}<span class="mc-lbl">${m.mediaType}</span><div class="mc-ov" onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="openV('${m.id}')">👁 View</button><button class="btn btn-sm" onclick="openE('${m.id}')">✎ Edit</button>${canDel?`<button class="btn btn-sm btn-rd" onclick="delM('${m.id}')">Delete</button>`:''}</div></div><div class="mc-bd" onclick="openV('${m.id}')"><div class="mc-nm">${m.title}</div><div class="mc-mt">${dt(m.uploadedAt)} · ${sz(m.fileSize)}</div>${tags?`<div class="mc-tags">${tags}</div>`:''}</div></div>`;
+  }).join('');
+}
+
+function openV(id){
+  const m=allMedia.find(x=>x.id===id);if(!m)return;
+  viewId=id;$('vTit').textContent=m.title;$('vOpn').href=m.blobUrl;
+  let p='';
+  if(m.mediaType==='image')p=`<img src="${m.blobUrl}" alt="${m.title}"/>`;
+  else if(m.mediaType==='video')p=`<video controls style="width:100%"><source src="${m.blobUrl}" type="${m.mimeType}"/></video>`;
+  else if(m.mediaType==='audio')p=`<div style="padding:2.5rem;text-align:center;font-size:3rem">🎵</div><audio controls style="width:100%"><source src="${m.blobUrl}" type="${m.mimeType}"/></audio>`;
+  else p=`<div class="vm-doc">📄<br/><small style="font-size:14px;color:var(--muted)">${m.fileName||m.title}</small></div>`;
+  $('vMed').innerHTML=p;
+  $('vInf').innerHTML=`<div class="ic"><label>Type</label><p>${m.mimeType||m.mediaType}</p></div><div class="ic"><label>Size</label><p>${sz(m.fileSize)||'—'}</p></div><div class="ic"><label>Uploaded</label><p>${dt(m.uploadedAt)}</p></div><div class="ic"><label>Tags</label><p>${(m.tags||[]).join(', ')||'None'}</p></div>${m.description?`<div class="ic" style="grid-column:1/-1"><label>Description</label><p>${m.description}</p></div>`:''}`;
+  $('vDelBtn').style.display=(isAdmin()||m.uploadedBy==curUser?.userId)?'inline-flex':'none';
+  $('vOv').classList.add('on');
+}
+function editFV(){closeOv('vOv');openE(viewId);}
+function delFV(){closeOv('vOv');delM(viewId);}
+
+function openE(id){const m=allMedia.find(x=>x.id===id);if(!m)return;$('eId').value=m.id;$('eMT').value=m.mediaType;$('eT').value=m.title;$('eD').value=m.description||'';$('eTg').value=(m.tags||[]).join(', ');$('eOv').classList.add('on');}
+async function saveEdit(){const id=$('eId').value;try{const r=await fetch(`${API}/media/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:$('eT').value,description:$('eD').value,tags:$('eTg').value,userId:curUser?.userId})});if(!r.ok)throw new Error((await r.json()).error);showT('Changes saved');closeOv('eOv');loadMedia();}catch(e){showT(e.message,true);}}
+
+async function delM(id){if(!confirm('Delete this file? This cannot be undone.'))return;try{const r=await fetch(`${API}/media/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:curUser?.userId})});if(!r.ok)throw new Error((await r.json()).error);showT('File deleted');loadMedia();loadDashboard();}catch(e){showT(e.message,true);}}
+
+function closeOv(id){$(id).classList.remove('on');}
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+
+async function triggerLA(){const email=$('laEmail').value.trim();const msg=$('laMsg').value.trim()||'New media uploaded to MediaVault!';if(!email){showT('Enter an email address',true);return;}$('laRes').textContent='Triggering Logic App workflow…';try{const r=await fetch(`${API}/notify`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,message:msg,triggeredBy:curUser?.username})});const d=await r.json();if(!r.ok)throw new Error(d.error);$('laRes').innerHTML='<span style="color:var(--green)">✓ Logic App triggered — notification sent to '+email+'</span>';showT('Logic App triggered!');}catch(e){$('laRes').innerHTML='<span style="color:var(--muted)">⚠ Set LOGIC_APP_URL in Azure App Service environment variables to enable this</span>';}}
+
+async function loadUsers(){
+  $('usrTbl').innerHTML='<div class="empty" style="padding:2rem"><div class="spin" style="margin:0 auto"></div></div>';
+  try{
+    const r=await fetch(`${API}/users`);
+    const users=await r.json();
+    if(!users.length){
+      $('usrTbl').innerHTML='<div class="empty" style="padding:2rem"><p>No users yet</p></div>';
+      return;
+    }
+    $('usrTbl').innerHTML=`
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${users.map(u=>`
+            <tr>
+              <td style="color:var(--muted)">${u.userId}</td>
+              <td><strong>${u.username}</strong></td>
+              <td style="color:var(--muted)">${u.email}</td>
+              <td>
+                <select onchange="changeRole(${u.userId},this.value)"
+                  style="border:1px solid var(--border);border-radius:var(--r);background:var(--bg);
+                  color:var(--text);padding:5px 10px;font-family:DM Sans,sans-serif;font-size:13px;outline:none">
+                  <option value="user" ${u.role==='user'?'selected':''}>User</option>
+                  <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+                </select>
+              </td>
+              <td style="color:var(--muted)">${dt(u.createdAt)}</td>
+              <td>
+                ${u.userId !== curUser.userId ?
+                  `<button class="btn btn-sm btn-rd" onclick="deleteUser(${u.userId},'${u.username}')">
+                    Delete
+                  </button>` :
+                  `<span style="font-size:12px;color:var(--muted)">— you —</span>`
+                }
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+    fillLgF(users);
+  }catch(e){
+    $('usrTbl').innerHTML=`<p style="padding:1rem;color:var(--red)">${e.message}</p>`;
+  }
+}
+
+async function deleteUser(id, username){
+  if(!confirm(`Delete user "${username}"? This will also delete all their audit logs.`)) return;
+  try{
+    const r=await fetch(`${API}/users/${id}`,{method:'DELETE'});
+    if(!r.ok) throw new Error((await r.json()).error);
+    showT(`User ${username} deleted`);
+    loadUsers();
+  }catch(e){showT(e.message,true);}
+}
+
+async function changeRole(id, role){
+  try{
+    const r=await fetch(`${API}/users/${id}/role`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({role})
+    });
+    if(!r.ok) throw new Error((await r.json()).error);
+    showT(`Role updated to ${role}`);
+  }catch(e){showT(e.message,true);}
+}
+
+async function addUser(){const u=$('nUsr').value.trim(),e=$('nEml').value.trim();if(!u||!e){showT('Fill in username and email',true);return;}try{const r=await fetch(`${API}/users`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,email:e})});if(!r.ok)throw new Error((await r.json()).error);showT('User added');$('nUsr').value='';$('nEml').value='';loadUsers();}catch(e){showT(e.message,true);}}
+async function fillLgF(users){if(!users){const r=await fetch(`${API}/users`);users=await r.json();}const opts=users.map(u=>`<option value="${u.userId}">${u.username}</option>`).join('');const f=$('lgF');if(f)f.innerHTML='<option value="">All users</option>'+opts;}
+
+async function loadLogs(){$('logsTbl').innerHTML='<div class="empty" style="padding:2rem"><div class="spin" style="margin:0 auto"></div></div>';const uid=$('lgF')?.value||'';try{let logs=[];if(uid){const r=await fetch(`${API}/users/${uid}/logs`);logs=await r.json();}else{const r=await fetch(`${API}/users`);const users=await r.json();for(const u of users){const lr=await fetch(`${API}/users/${u.userId}/logs`);logs=logs.concat(await lr.json());}logs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));}if(!logs.length){$('logsTbl').innerHTML='<div class="empty" style="padding:2rem"><p>No logs yet</p></div>';return;}$('logsTbl').innerHTML=`<table><thead><tr><th>#</th><th>User</th><th>Action</th><th>Media ID</th><th>Time</th></tr></thead><tbody>${logs.map(l=>`<tr><td style="color:var(--muted)">${l.logId}</td><td><strong>${l.username||'—'}</strong></td><td><span class="badge ${l.action==='UPLOAD'?'bU':l.action==='DELETE'?'bD':'bE'}">${l.action}</span></td><td style="color:var(--muted);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.mediaId||'—'}</td><td style="color:var(--muted)">${new Date(l.timestamp).toLocaleString()}</td></tr>`).join('')}</tbody></table>`;}catch(e){$('logsTbl').innerHTML=`<p style="padding:1rem;color:var(--red)">${e.message}</p>`;}}
 </script>
 </body>
 </html>
