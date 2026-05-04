@@ -18,6 +18,7 @@ app.get('/api/health', (req, res) => {
 // Routes
 app.use('/api/media', require('./routes/media'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/notify', require('./routes/notify'));
 
 // Fallback
 app.get('*', (req, res) => {
