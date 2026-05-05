@@ -4,15 +4,13 @@ const { v4: uuidv4 } = require('uuid');
 const { getBlobContainer } = require('../config/blobStorage');
 const { getCosmosContainer } = require('../config/cosmos');
 const { getSqlPool, sql } = require('../config/sql');
+const { analyseImage } = require('../config/computerVision');
 
 const router = express.Router();
 
-// Multer: store file in memory before uploading to Blob Storage
 const upload = multer({ storage: multer.memoryStorage() });
 
-// ─────────────────────────────────────────────
-// POST /api/media  –  Upload a media file
-// ─────────────────────────────────────────────
+// POST /api/media — Upload a media file
 router.post('/', upload.single('file'), async (req, res) => {
   try {
     const { title, description, tags, userId } = req.body;
@@ -33,15 +31,27 @@ router.post('/', upload.single('file'), async (req, res) => {
     });
 
     const blobUrl = blockBlobClient.url;
+    const mediaType = req.file.mimetype.split('/')[0];
 
-    // 2. Store metadata in Cosmos DB
+    // 2. AI auto-tagging for images using Computer Vision
+    let autoTags = [];
+    if (mediaType === 'image') {
+      console.log('[ComputerVision] Analysing image:', blobUrl);
+      autoTags = await analyseImage(blobUrl);
+      console.log('[ComputerVision] Auto tags:', autoTags);
+    }
+
+    // Merge manual tags with AI tags
+    const manualTags = tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+    const allTags = [...manualTags, ...autoTags];
+
+    // 3. Store metadata in Cosmos DB
     const cosmosContainer = await getCosmosContainer();
-    const mediaType = req.file.mimetype.split('/')[0]; // image, video, application
     const mediaDoc = {
       id: uuidv4(),
       title: title || req.file.originalname,
       description: description || '',
-      tags: tags ? tags.split(',').map(t => t.trim()) : [],
+      tags: allTags,
       mediaType,
       mimeType: req.file.mimetype,
       fileName: req.file.originalname,
@@ -54,7 +64,7 @@ router.post('/', upload.single('file'), async (req, res) => {
 
     const { resource: created } = await cosmosContainer.items.create(mediaDoc);
 
-    // 3. Log action in Azure SQL
+    // 4. Log action in Azure SQL
     if (userId) {
       const db = await getSqlPool();
       await db.request()
@@ -64,7 +74,7 @@ router.post('/', upload.single('file'), async (req, res) => {
         .query(`INSERT INTO AuditLogs (userId, action, mediaId) VALUES (@userId, @action, @mediaId)`);
     }
 
-    // Trigger Logic App notification automatically
+    // 5. Trigger Logic App notification
     if (process.env.LOGIC_APP_URL && userId) {
       try {
         const db = await getSqlPool();
@@ -116,16 +126,13 @@ router.post('/', upload.single('file'), async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// GET /api/media  –  Retrieve all media
-// ─────────────────────────────────────────────
+// GET /api/media — Retrieve all media
 router.get('/', async (req, res) => {
   try {
     const cosmosContainer = await getCosmosContainer();
     const { resources } = await cosmosContainer.items
       .query('SELECT * FROM c ORDER BY c.uploadedAt DESC')
       .fetchAll();
-
     res.json(resources);
   } catch (err) {
     console.error('[GET /media]', err.message);
@@ -133,18 +140,14 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// GET /api/media/:id  –  Retrieve one media item
-// ─────────────────────────────────────────────
+// GET /api/media/:id — Retrieve one media item
 router.get('/:id', async (req, res) => {
   try {
     const cosmosContainer = await getCosmosContainer();
     const { resources } = await cosmosContainer.items
       .query({ query: 'SELECT * FROM c WHERE c.id = @id', parameters: [{ name: '@id', value: req.params.id }] })
       .fetchAll();
-
     if (!resources.length) return res.status(404).json({ error: 'Media not found' });
-
     res.json(resources[0]);
   } catch (err) {
     console.error('[GET /media/:id]', err.message);
@@ -152,15 +155,12 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// PUT /api/media/:id  –  Update media metadata
-// ─────────────────────────────────────────────
+// PUT /api/media/:id — Update media metadata
 router.put('/:id', async (req, res) => {
   try {
     const { title, description, tags, userId } = req.body;
     const cosmosContainer = await getCosmosContainer();
 
-    // Fetch existing item
     const { resources } = await cosmosContainer.items
       .query({ query: 'SELECT * FROM c WHERE c.id = @id', parameters: [{ name: '@id', value: req.params.id }] })
       .fetchAll();
@@ -178,7 +178,6 @@ router.put('/:id', async (req, res) => {
 
     const { resource } = await cosmosContainer.items.upsert(updated);
 
-    // Log update in SQL
     if (userId) {
       const db = await getSqlPool();
       await db.request()
@@ -195,15 +194,12 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// DELETE /api/media/:id  –  Delete media + blob
-// ─────────────────────────────────────────────
+// DELETE /api/media/:id — Delete media + blob
 router.delete('/:id', async (req, res) => {
   try {
     const { userId } = req.body;
     const cosmosContainer = await getCosmosContainer();
 
-    // Find the item
     const { resources } = await cosmosContainer.items
       .query({ query: 'SELECT * FROM c WHERE c.id = @id', parameters: [{ name: '@id', value: req.params.id }] })
       .fetchAll();
@@ -212,15 +208,12 @@ router.delete('/:id', async (req, res) => {
 
     const mediaDoc = resources[0];
 
-    // 1. Delete blob from Azure Blob Storage
     const blobContainer = await getBlobContainer();
     const blockBlobClient = blobContainer.getBlockBlobClient(mediaDoc.blobName);
     await blockBlobClient.deleteIfExists();
 
-    // 2. Delete metadata from Cosmos DB
     await cosmosContainer.item(mediaDoc.id, mediaDoc.mediaType).delete();
 
-    // 3. Log delete in SQL
     if (userId) {
       const db = await getSqlPool();
       await db.request()
