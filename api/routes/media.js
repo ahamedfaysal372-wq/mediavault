@@ -64,15 +64,30 @@ router.post('/', upload.single('file'), async (req, res) => {
 
     // Trigger Logic App notification automatically
     if (process.env.LOGIC_APP_URL) {
-      fetch(process.env.LOGIC_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: 'ahamedfaysal372@gmail.com',
-          message: `New media uploaded: ${mediaDoc.title} (${mediaDoc.mimeType})`,
-          triggeredBy: userId || 'unknown'
-        })
-      }).catch(err => console.error('Logic App trigger failed:', err.message));
+      // Get uploader's email from SQL
+      try {
+        if (userId) {
+          const db = await getSqlPool();
+          const userResult = await db.request()
+            .input('userId', sql.Int, parseInt(userId))
+            .query('SELECT email, username FROM Users WHERE userId = @userId');
+          
+          if (userResult.recordset.length) {
+            const uploader = userResult.recordset[0];
+            fetch(process.env.LOGIC_APP_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: uploader.email,
+                message: `New media uploaded: ${mediaDoc.title} (${mediaDoc.mimeType})`,
+                triggeredBy: uploader.username
+              })
+            }).catch(err => console.error('Logic App trigger failed:', err.message));
+          }
+        }
+      } catch(err) {
+        console.error('Logic App email lookup failed:', err.message);
+      }
     }
 
     res.status(201).json(created);
