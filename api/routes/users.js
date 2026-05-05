@@ -194,4 +194,17 @@ router.put('/:id/role', async (req, res) => {
   }
 });
 
+// GET /api/users/admin/email — Get admin email for notifications
+router.get('/admin/email', async (req, res) => {
+  try {
+    const db = await getSqlPool();
+    const result = await db.request()
+      .query("SELECT TOP 1 email FROM Users WHERE role = 'admin'");
+    if (!result.recordset.length) return res.json({ email: null });
+    res.json({ email: result.recordset[0].email });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

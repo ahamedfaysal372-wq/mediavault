@@ -223,6 +223,64 @@ router.delete('/:id', async (req, res) => {
         .query(`INSERT INTO AuditLogs (userId, action, mediaId) VALUES (@userId, @action, @mediaId)`);
     }
 
+    // Trigger delete alert Logic App
+    if (process.env.DELETE_LOGIC_APP_URL) {
+      try {
+        // Get admin email
+        const db = await getSqlPool();
+        const adminResult = await db.request()
+          .query("SELECT TOP 1 email FROM Users WHERE role = 'admin'");
+
+        const adminEmail = adminResult.recordset[0]?.email;
+
+        // Get deleter username
+        let deletedBy = 'unknown';
+        if (userId) {
+          const userResult = await db.request()
+            .input('userId', sql.Int, parseInt(userId))
+            .query('SELECT username FROM Users WHERE userId = @userId');
+          if (userResult.recordset.length) {
+            deletedBy = userResult.recordset[0].username;
+          }
+        }
+
+        if (adminEmail) {
+          const payload = JSON.stringify({
+            adminEmail,
+            deletedBy,
+            mediaTitle: mediaDoc.title,
+            mediaType: mediaDoc.mediaType
+          });
+
+          const url = new URL(process.env.DELETE_LOGIC_APP_URL);
+          const https = require('https');
+          const options = {
+            hostname: url.hostname,
+            path: url.pathname + url.search,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(payload)
+            }
+          };
+
+          const deleteReq = https.request(options, (deleteRes) => {
+            console.log(`[DeleteLogicApp] Status: ${deleteRes.statusCode}`);
+          });
+
+          deleteReq.on('error', (err) => {
+            console.error('[DeleteLogicApp] Error:', err.message);
+          });
+
+          deleteReq.write(payload);
+          deleteReq.end();
+          console.log(`[DeleteLogicApp] Delete alert sent to ${adminEmail}`);
+        }
+      } catch(err) {
+        console.error('[DeleteLogicApp] Failed:', err.message);
+      }
+    }
+
     res.json({ message: 'Media deleted successfully', id: req.params.id });
   } catch (err) {
     console.error('[DELETE /media/:id]', err.message);
