@@ -63,30 +63,47 @@ router.post('/', upload.single('file'), async (req, res) => {
     }
 
     // Trigger Logic App notification automatically
-    if (process.env.LOGIC_APP_URL) {
-      // Get uploader's email from SQL
+    if (process.env.LOGIC_APP_URL && userId) {
       try {
-        if (userId) {
-          const db = await getSqlPool();
-          const userResult = await db.request()
-            .input('userId', sql.Int, parseInt(userId))
-            .query('SELECT email, username FROM Users WHERE userId = @userId');
-          
-          if (userResult.recordset.length) {
-            const uploader = userResult.recordset[0];
-            fetch(process.env.LOGIC_APP_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: uploader.email,
-                message: `New media uploaded: ${mediaDoc.title} (${mediaDoc.mimeType})`,
-                triggeredBy: uploader.username
-              })
-            }).catch(err => console.error('Logic App trigger failed:', err.message));
-          }
+        const db = await getSqlPool();
+        const userResult = await db.request()
+          .input('userId', sql.Int, parseInt(userId))
+          .query('SELECT email, username FROM Users WHERE userId = @userId');
+
+        if (userResult.recordset.length) {
+          const uploader = userResult.recordset[0];
+          const payload = JSON.stringify({
+            email: uploader.email,
+            message: `New media uploaded: ${mediaDoc.title} (${mediaDoc.mimeType})`,
+            triggeredBy: uploader.username
+          });
+
+          const url = new URL(process.env.LOGIC_APP_URL);
+          const https = require('https');
+          const options = {
+            hostname: url.hostname,
+            path: url.pathname + url.search,
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(payload)
+            }
+          };
+
+          const logicReq = https.request(options, (logicRes) => {
+            console.log(`[LogicApp] Status: ${logicRes.statusCode}`);
+          });
+
+          logicReq.on('error', (err) => {
+            console.error('[LogicApp] Error:', err.message);
+          });
+
+          logicReq.write(payload);
+          logicReq.end();
+          console.log(`[LogicApp] Notification triggered for ${uploader.email}`);
         }
       } catch(err) {
-        console.error('Logic App email lookup failed:', err.message);
+        console.error('[LogicApp] Failed:', err.message);
       }
     }
 
