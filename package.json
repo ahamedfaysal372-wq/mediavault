@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@azure/cognitiveservices-computervision": "^8.2.0",
+    "@azure/ms-rest-js": "^2.7.0"
+  }
+}
