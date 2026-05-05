@@ -16,6 +16,8 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.post('/', upload.single('file'), async (req, res) => {
   try {
     const { title, description, tags, userId } = req.body;
+    console.log('[Upload] userId received:', userId);
+    console.log('[Upload] LOGIC_APP_URL set:', !!process.env.LOGIC_APP_URL);
 
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' });
