@@ -31,7 +31,47 @@ router.post('/', async (req, res) => {
         VALUES (@username, @email, @password, @role)
       `);
 
-    res.status(201).json(result.recordset[0]);
+    const user = result.recordset[0];
+
+    // Trigger welcome email Logic App
+    if (process.env.WELCOME_LOGIC_APP_URL) {
+      try {
+        const welcomePayload = JSON.stringify({
+          email: email,
+          username: username,
+          message: 'Welcome to MediaVault!'
+        });
+
+        const welcomeUrl = new URL(process.env.WELCOME_LOGIC_APP_URL);
+        const https = require('https');
+        const welcomeOptions = {
+          hostname: welcomeUrl.hostname,
+          path: welcomeUrl.pathname + welcomeUrl.search,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(welcomePayload)
+          }
+        };
+
+        const welcomeReq = https.request(welcomeOptions, (welcomeRes) => {
+          console.log(`[WelcomeLogicApp] Status: ${welcomeRes.statusCode}`);
+        });
+
+        welcomeReq.on('error', (err) => {
+          console.error('[WelcomeLogicApp] Error:', err.message);
+        });
+
+        welcomeReq.write(welcomePayload);
+        welcomeReq.end();
+        console.log(`[WelcomeLogicApp] Welcome email triggered for ${email}`);
+      } catch(err) {
+        console.error('[WelcomeLogicApp] Failed:', err.message);
+      }
+    }
+
+    delete user.password;
+    res.status(201).json(user);
   } catch (err) {
     console.error('[POST /users]', err.message);
     res.status(500).json({ error: err.message });
