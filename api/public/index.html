@@ -348,6 +348,28 @@
             <div class="sc"><div class="sc-l">Audio</div><div class="sc-v" id="sAud">0</div><div class="sc-s">Blob Storage</div></div>
             <div class="sc"><div class="sc-l">Documents</div><div class="sc-v" id="sDoc">0</div><div class="sc-s">Blob Storage</div></div>
           </div>
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-hd">
+              ⚡ Azure Function — Live Media Stats
+              <span id="statsGenerated" style="font-size:12px;color:var(--muted);font-weight:400"></span>
+            </div>
+            <div class="card-bd" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+              <div>
+                <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Total files</div>
+                <div style="font-family:'Fraunces',serif;font-size:32px;font-weight:300" id="fnTotal">—</div>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Total storage</div>
+                <div style="font-family:'Fraunces',serif;font-size:32px;font-weight:300" id="fnSize">—</div>
+                <div style="font-size:12px;color:var(--muted2)">MB used</div>
+              </div>
+              <div>
+                <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Powered by</div>
+                <div style="font-size:13px;font-weight:600;color:var(--green)">Azure Functions</div>
+                <div style="font-size:12px;color:var(--muted2)">Serverless compute</div>
+              </div>
+            </div>
+          </div>
           <div class="two-col">
             <div class="card">
               <div class="card-hd">Recent uploads <button class="btn btn-sm" onclick="go('gallery')">View all →</button></div>
@@ -623,6 +645,17 @@ async function loadDashboard(){
     $('totalN').textContent=media.length;
     const rec=media.slice(0,6);
     $('dashRecent').innerHTML=rec.length?rec.map(m=>`<div class="ri" onclick="openV('${m.id}')"><div class="ri-th">${m.mediaType==='image'?`<img src="${m.blobUrl}" onerror="this.parentElement.textContent='${ico(m.mediaType)}'"/>`:`${ico(m.mediaType)}`}</div><span class="ri-nm">${m.title}</span><span class="ri-dt">${dt(m.uploadedAt)}</span></div>`).join(''):'<div class="empty" style="padding:2rem"><div class="ei">📭</div><p>No uploads yet</p></div>';
+    // Load stats from Azure Function
+    try {
+      const fnUrl = 'https://mediavault-functions-arc3dydzdfh3bycs.germanywestcentral-01.azurewebsites.net/api/MediaStats?code=https://mediavault-functions-arc3dydzdfh3bycs.germanywestcentral-01.azurewebsites.net/api/MediaStats';
+      const fnR = await fetch(fnUrl);
+      const fnStats = await fnR.json();
+      if ($('fnTotal')) $('fnTotal').textContent = fnStats.total;
+      if ($('fnSize')) $('fnSize').textContent = fnStats.totalSizeMB;
+      if ($('statsGenerated')) $('statsGenerated').textContent = 'Generated: ' + new Date(fnStats.generatedAt).toLocaleTimeString();
+    } catch(fnErr) {
+      console.error('Function stats error:', fnErr.message);
+    }
   }catch(e){console.error(e);}
 }
 
