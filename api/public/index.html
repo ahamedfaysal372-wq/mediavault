@@ -647,7 +647,7 @@ async function loadDashboard(){
     $('dashRecent').innerHTML=rec.length?rec.map(m=>`<div class="ri" onclick="openV('${m.id}')"><div class="ri-th">${m.mediaType==='image'?`<img src="${m.blobUrl}" onerror="this.parentElement.textContent='${ico(m.mediaType)}'"/>`:`${ico(m.mediaType)}`}</div><span class="ri-nm">${m.title}</span><span class="ri-dt">${dt(m.uploadedAt)}</span></div>`).join(''):'<div class="empty" style="padding:2rem"><div class="ei">📭</div><p>No uploads yet</p></div>';
     // Load stats from Azure Function
     try {
-      const fnUrl = 'https://mediavault-functions-arc3dydzdfh3bycs.germanywestcentral-01.azurewebsites.net/api/MediaStats?code=https://mediavault-functions-arc3dydzdfh3bycs.germanywestcentral-01.azurewebsites.net/api/MediaStats';
+      const fnUrl = `${API}/stats`;
       const fnR = await fetch(fnUrl);
       const fnStats = await fnR.json();
       if ($('fnTotal')) $('fnTotal').textContent = fnStats.total;
