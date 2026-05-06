@@ -23,12 +23,13 @@ app.use('/api/notify', require('./routes/notify'));
 // Proxy to Azure Function
 app.get('/api/stats', async (req, res) => {
   try {
+    const { userId, role } = req.query;
     const fnUrl = process.env.MEDIA_STATS_FUNCTION_URL;
     if (!fnUrl) return res.json({ error: 'Function not configured' });
-    
+
     const https = require('https');
     const url = new URL(fnUrl);
-    
+
     https.get({
       hostname: url.hostname,
       path: url.pathname + url.search,
@@ -37,7 +38,8 @@ app.get('/api/stats', async (req, res) => {
       fnRes.on('data', chunk => data += chunk);
       fnRes.on('end', () => {
         try {
-          res.json(JSON.parse(data));
+          const allStats = JSON.parse(data);
+          res.json(allStats);
         } catch(e) {
           res.status(500).json({ error: e.message });
         }

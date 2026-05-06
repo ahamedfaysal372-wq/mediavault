@@ -366,7 +366,7 @@
               <div>
                 <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px">Powered by</div>
                 <div style="font-size:13px;font-weight:600;color:var(--green)">Azure Functions</div>
-                <div style="font-size:12px;color:var(--muted2)">Serverless compute</div>
+                <div style="font-size:12px;color:var(--muted2)" id="fnScope">Serverless compute</div>
               </div>
             </div>
           </div>
@@ -647,12 +647,23 @@ async function loadDashboard(){
     $('dashRecent').innerHTML=rec.length?rec.map(m=>`<div class="ri" onclick="openV('${m.id}')"><div class="ri-th">${m.mediaType==='image'?`<img src="${m.blobUrl}" onerror="this.parentElement.textContent='${ico(m.mediaType)}'"/>`:`${ico(m.mediaType)}`}</div><span class="ri-nm">${m.title}</span><span class="ri-dt">${dt(m.uploadedAt)}</span></div>`).join(''):'<div class="empty" style="padding:2rem"><div class="ei">📭</div><p>No uploads yet</p></div>';
     // Load stats from Azure Function
     try {
-      const fnUrl = `${API}/stats`;
-      const fnR = await fetch(fnUrl);
+      const fnR = await fetch(`${API}/stats?userId=${curUser.userId}&role=${curUser.role}`);
       const fnStats = await fnR.json();
-      if ($('fnTotal')) $('fnTotal').textContent = fnStats.total;
-      if ($('fnSize')) $('fnSize').textContent = fnStats.totalSizeMB;
-      if ($('statsGenerated')) $('statsGenerated').textContent = 'Generated: ' + new Date(fnStats.generatedAt).toLocaleTimeString();
+      
+      if(isAdmin()) {
+        // Admin sees platform-wide stats
+        if ($('fnTotal')) $('fnTotal').textContent = fnStats.total;
+        if ($('fnSize')) $('fnSize').textContent = fnStats.totalSizeMB;
+        if ($('statsGenerated')) $('statsGenerated').textContent = 'Platform total · Generated: ' + new Date(fnStats.generatedAt).toLocaleTimeString();
+      } else {
+        // Regular user sees only their own stats
+        const userFiles = allMedia.filter(m => m.uploadedBy == curUser.userId);
+        const userSize = (userFiles.reduce((sum, m) => sum + (m.fileSize || 0), 0) / (1024 * 1024)).toFixed(2);
+        if ($('fnTotal')) $('fnTotal').textContent = userFiles.length;
+        if ($('fnSize')) $('fnSize').textContent = userSize;
+        if ($('statsGenerated')) $('statsGenerated').textContent = 'Your files · Generated: ' + new Date().toLocaleTimeString();
+      }
+      if ($('fnScope')) $('fnScope').textContent = isAdmin() ? 'Platform-wide stats' : 'Your personal stats';
     } catch(fnErr) {
       console.error('Function stats error:', fnErr.message);
     }
